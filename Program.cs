@@ -10,7 +10,7 @@ namespace ISFO
     {
         static void Main(string[] args)
         {
-
+            List<string> commands = FileMenager.ReadTestFile();
 
 
         }

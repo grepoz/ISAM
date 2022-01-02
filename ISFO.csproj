@@ -45,12 +45,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileMenager.cs" />
-    <Compile Include="MyFile.cs" />
-    <Compile Include="Page.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="source\DBMS.cs" />
+    <Compile Include="source\FileMenager.cs" />
+    <Compile Include="source\MyFile.cs" />
+    <Compile Include="source\Page.cs" />
+    <Compile Include="source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RecordMenager.cs" />
+    <Compile Include="source\Record.cs" />
+    <Compile Include="source\RecordMenager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using ISFO.source;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using static ISFO.MyFile;
@@ -20,6 +22,24 @@ namespace ISFO
         public FileMenager()
         {
             CreateDirectory();
+            GenerateBasicIndexFile();
+            GeneratePrimaryFile();
+            GenerateOverflowFile();
+        }
+
+        private void GeneratePrimaryFile()
+        {
+            GenerateFile(primaryFile);
+
+            List<Record> fileContent = new List<Record>();
+
+            for (int i = 0; i < DBMS.defaultNrOfPages; i++)
+            {
+                fileContent.Add(MyFile.GetEmptyRecord());
+            }
+
+            
+
         }
 
         private static void CreateDirectory()
@@ -59,15 +79,13 @@ namespace ISFO
 
             return consoleInputTape;
         }
-
         private void GenerateBasicIndexFile()
         {
             GenerateFile(indexFile);
 
             List<(int, int)> fileContent = new List<(int, int)>();
-            uint nrOfRec = 5;
 
-            for (int i = 0; i < nrOfRec; i++)
+            for (int i = 0; i < DBMS.defaultNrOfPages; i++)
             {
                 fileContent.Add((i * 10 + 1, i + 1));
             }
@@ -75,7 +93,6 @@ namespace ISFO
             WriteToIndexFile(indexFile, fileContent);
 
         }
-
         public static void GenerateFile(string filePath)
         {
             try
@@ -88,6 +105,9 @@ namespace ISFO
             }
         }
 
+        //
+        //  mozesz zmienic funkcje WriteToIndexFile na WriteToFile - chyba ze cos sie spiepszylo
+        //
         public void WriteToIndexFile(string filePath, List<(int, int)> fileContent)
         {
             // writes list of tuples to file
@@ -112,7 +132,38 @@ namespace ISFO
             }
             else
                 throw new InvalidOperationException("Variable fileContent is empty!");
+        }
+        public void WriteToFile(string filePath, List<Record> records)
+        {
 
+            if (records != null)
+            {
+                try
+                {
+                    using (var fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None))
+                    {
+                        using (BinaryWriter writer = new BinaryWriter(fileStream))
+                        {
+                            
+                            foreach (var record in records)
+                            {
+                                var recordAsTuple = RecordToTuple(record);
+                                foreach (var item in recordAsTuple)
+                                {
+
+                                }
+                                writer.Write(ObjectToByteArray(record));
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    throw new InvalidOperationException("Cannot write records to tape!");
+                }
+            }
+            else
+                throw new InvalidOperationException("Variable fileContent is empty!");
         }
 
         public static List<string> ReadTestFile(string filePath = "")

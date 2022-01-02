@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISFO.source;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,6 +31,20 @@ namespace ISFO
         {
             return records.Count();
         }
+
+        public void Clear()
+        {
+            records.Clear();
+        }
+
+        public void DisplayPageContent()
+        {
+            foreach (var record in records)
+            {
+                Console.WriteLine(record.ToString());
+            }
+        }
+
 
     }
 }

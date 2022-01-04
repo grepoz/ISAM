@@ -25,7 +25,7 @@ namespace ISFO.source
 
         private int nextEmptyOverflowIndex = 0;
 
-        public Page ReadPage(string filePath, int position)
+        public object ReadPage(string filePath, int position)
         {
             try
             {
@@ -37,7 +37,12 @@ namespace ISFO.source
                         if (br.BaseStream.Length > 0)
                         {
                             byte[] chunk = br.ReadBytes(B); 
-                            return RecordMenager.BytesToPage(chunk, B);
+                            if(typeof(object) == typeof(Page))
+                                return RecordMenager.BytesToPage(chunk, B);
+                            else if (typeof(object) == typeof(int[,]))
+                                return RecordMenager.BytesToIndexPage(chunk, B);
+                            else
+                                throw new InvalidOperationException("Enable to read page!");
                         }
                         else
                             return null;
@@ -49,8 +54,33 @@ namespace ISFO.source
                 Console.WriteLine("Cannot read a chunk from file:\n" + e.Message);
                 return null;
             }
-
         }
+
+        /*public int[,] ReadIndexPage(string filePath, int position)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    fs.Seek(position, SeekOrigin.Begin);
+                    using (BinaryReader br = new BinaryReader(fs, new ASCIIEncoding()))
+                    {
+                        if (br.BaseStream.Length > 0)
+                        {
+                            byte[] chunk = br.ReadBytes(B);
+                            return RecordMenager.BytesToIndexPage(chunk, B);
+                        }
+                        else
+                            return null;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Cannot read a chunk from file:\n" + e.Message);
+                return null;
+            }
+        }*/
 
         public void InsertRecord(Record toBeInserted)
         {
@@ -58,27 +88,25 @@ namespace ISFO.source
 
             int pageNr = GetPageNr(toBeInserted.key);
 
-            Page page = ReadPage(FileMenager.GetPrimaryFileName(), (pageNr - 1) * B);
+            Page page = (Page)ReadPage(FileMenager.GetPrimaryFileName(), (pageNr - 1) * B);
 
             ChoosePlaceAndInsert(page, toBeInserted);
-
 
         }
 
         private void ChoosePlaceAndInsert(Page page, Record toBeInserted)
         {
-            int prevKey = 0; 
-
+            Record prevRecord = null;
             foreach (var record in page.GetRecords())
             {
                 if(record.key < toBeInserted.key)
                 {
-                    prevKey = record.key;
+                    prevRecord = record;
                 }
                 else if (record.key > toBeInserted.key)
                 {                   
                     InsertToOverflowFile(toBeInserted);
-                    record.next = nextEmptyOverflowIndex++;     
+                    prevRecord.next = nextEmptyOverflowIndex++;     
                     return;
                 }
                 else // ==
@@ -96,9 +124,9 @@ namespace ISFO.source
         private void InsertToOverflowFile(Record toBeInserted)
         {
             bool inserted = false;
-            for (int i = 0; !inserted; i++) 
+            for (int i = 0; i < nrOfPageInOverflow && !inserted; i++) 
             {
-                Page page = ReadPage(FileMenager.GetOverflowFileName(), i* B);
+                Page page = (Page)ReadPage(FileMenager.GetOverflowFileName(), i* B);
 
                 if (page.GetFullfillment() < recPerPage)
                 {
@@ -106,23 +134,35 @@ namespace ISFO.source
                     inserted = true;
                 }
             }
-
+            if(!inserted) throw new InvalidOperationException("Enable to insert record to overflow area!");
 
             //if (IsReorganisation()) Reorganise();
 
         }
 
+        // przebuduj! - error - zły return i pętla nieskonczona
         private int GetPageNr(int key)
         {
             int position = 0;
 
-            Page page = ReadPage(FileMenager.GetIndexFileName(), position);
+            while (true)
+            {
+                int[,] indexPage = (int[,])ReadPage(FileMenager.GetIndexFileName(), position);
 
+                int prevKey = 0;
 
+                for (int j = 0; j < indexPage.GetLength(0); j++)
+                {
+                    int keyFromIndex = indexPage[j, 0];
+                    if (key < keyFromIndex) prevKey = key;
+                    else if (key > keyFromIndex) return prevKey;
+                    else return key;
+                }
 
-
-            return 0;   // return indexing from 1
+                position += B;
+            }
         }
+
 
         private void ValidRecord(Record record)
         {

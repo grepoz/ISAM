@@ -34,7 +34,7 @@ namespace ISFO
             return new Record(key, r, h);
         }
 
-        public static unsafe Page BytesToPage(byte[] chunk, int B)
+        public static Page BytesToPage(byte[] chunk, int B)
         {
             Page page = new Page();
 
@@ -42,6 +42,7 @@ namespace ISFO
             const int bytesInInt = 4;
             int nrOfInts = B / bytesInInt;
 
+            // nie za dużo!!!!
             for (int i = 0; i < nrOfInts; i++)
             {
                 int k = i * DBMS.nrOfIntsInRecord;
@@ -58,6 +59,26 @@ namespace ISFO
 
             return page;
 
+        }
+
+        public static int[,] BytesToIndexPage(byte[] chunk, int B)
+        {
+            Page page = new Page();
+
+            int[] intsArr = BytesToInts(chunk, B);
+            const int bytesInInt = 4;
+            int nrOfInts = B / bytesInInt;
+
+            const int cols = 2;
+            int rows = nrOfInts / cols;
+            var indexFileRecords = new int[rows, cols];
+
+            for (int i = 0; i < nrOfInts; i++)
+            {
+                indexFileRecords[i * cols, i % 2] = intsArr[i];
+            }
+
+            return indexFileRecords;
         }
 
         private static int[] BytesToInts(byte[] chunk, int B)

@@ -8,7 +8,6 @@ namespace ISFO.source
 {
     class Record
     {
-
         public int key, data1, data2;
         public int deleted;    // 0 - false, 1 - true
         public int next;       // index of next record, if equals '-1' its empty
@@ -28,13 +27,9 @@ namespace ISFO.source
             next = -1;
         }
 
-
         public override string ToString() => $"[ key:{key}, data: ({data1}, {data2}), deleted: {deleted} ]";
 
-        public int[] ToIntArr()
-        {
-            return new int[] {key, data1, data2, deleted, next };
-        }
+        public int[] ToIntArr() => new int[] { key, data1, data2, deleted, next };
 
     }
 }

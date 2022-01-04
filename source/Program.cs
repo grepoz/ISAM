@@ -12,8 +12,13 @@ namespace ISFO
         static void Main()
         {
             FileMenager fm = new FileMenager();
+            DBMS dbms = new DBMS();
 
             fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
+
+            Record testRecord = new Record(2, 3, 4);
+
+            dbms.InsertRecord(testRecord);
 
             //List<string> commands = fm.ReadTestFile();
 

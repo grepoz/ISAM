@@ -205,7 +205,8 @@ namespace ISFO
                             if (cnt % DBMS.nrOfIntsInRecord == 0)
                             {
                                 Console.WriteLine();
-                                if(cnt % (DBMS.defaultNrOfPages * DBMS.recPerPage) == 0) {
+                                // error defaultNrOfPages is changing
+                                if (cnt % (DBMS.defaultNrOfPages * DBMS.recPerPage) == 0) {
                                     cnt = 0;
                                     Console.WriteLine("-----------------------");
                                 }                             

@@ -25,7 +25,7 @@ namespace ISFO.source
 
         private int nextEmptyOverflowIndex = 0;
 
-        public object ReadPage(string filePath, int position)
+        public Page ReadPage(string filePath, int position)
         {
             try
             {
@@ -37,12 +37,8 @@ namespace ISFO.source
                         if (br.BaseStream.Length > 0)
                         {
                             byte[] chunk = br.ReadBytes(B); 
-                            if(typeof(object) == typeof(Page))
-                                return RecordMenager.BytesToPage(chunk, B);
-                            else if (typeof(object) == typeof(int[,]))
-                                return RecordMenager.BytesToIndexPage(chunk, B);
-                            else
-                                throw new InvalidOperationException("Enable to read page!");
+                            return RecordMenager.BytesToPage(chunk);
+
                         }
                         else
                             return null;
@@ -56,7 +52,7 @@ namespace ISFO.source
             }
         }
 
-        /*public int[,] ReadIndexPage(string filePath, int position)
+        public int[,] ReadIndexPage(string filePath, int position)
         {
             try
             {
@@ -68,7 +64,7 @@ namespace ISFO.source
                         if (br.BaseStream.Length > 0)
                         {
                             byte[] chunk = br.ReadBytes(B);
-                            return RecordMenager.BytesToIndexPage(chunk, B);
+                            return RecordMenager.BytesToIndexPage(chunk);
                         }
                         else
                             return null;
@@ -80,7 +76,7 @@ namespace ISFO.source
                 Console.WriteLine("Cannot read a chunk from file:\n" + e.Message);
                 return null;
             }
-        }*/
+        }
 
         public void InsertRecord(Record toBeInserted)
         {
@@ -147,7 +143,7 @@ namespace ISFO.source
 
             while (true)
             {
-                int[,] indexPage = (int[,])ReadPage(FileMenager.GetIndexFileName(), position);
+                int[,] indexPage = ReadIndexPage(FileMenager.GetIndexFileName(), position);
 
                 int prevKey = 0;
 
@@ -155,8 +151,8 @@ namespace ISFO.source
                 {
                     int keyFromIndex = indexPage[j, 0];
                     if (key < keyFromIndex) prevKey = key;
-                    else if (key > keyFromIndex) return prevKey;
-                    else return key;
+                    else if (key > keyFromIndex) return indexPage[prevKey, 1];
+                    else return indexPage[key, 1];
                 }
 
                 position += B;

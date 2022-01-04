@@ -34,13 +34,13 @@ namespace ISFO
             return new Record(key, r, h);
         }
 
-        public static Page BytesToPage(byte[] chunk, int B)
+        public static Page BytesToPage(byte[] chunk)
         {
             Page page = new Page();
 
-            int[] intsArr = BytesToInts(chunk, B);
+            int[] intsArr = BytesToInts(chunk);
             const int bytesInInt = 4;
-            int nrOfInts = B / bytesInInt;
+            int nrOfInts = chunk.Length / bytesInInt;
 
             // nie za dużo!!!!
             for (int i = 0; i < nrOfInts; i++)
@@ -61,30 +61,29 @@ namespace ISFO
 
         }
 
-        public static int[,] BytesToIndexPage(byte[] chunk, int B)
+        public static int[,] BytesToIndexPage(byte[] chunk)
         {
-            Page page = new Page();
-
-            int[] intsArr = BytesToInts(chunk, B);
+            int[] intsArr = BytesToInts(chunk);
             const int bytesInInt = 4;
-            int nrOfInts = B / bytesInInt;
+            int nrOfInts = chunk.Length / bytesInInt;
 
             const int cols = 2;
             int rows = nrOfInts / cols;
             var indexFileRecords = new int[rows, cols];
 
-            for (int i = 0; i < nrOfInts; i++)
+            for (int i = 0; i < rows; i++)
             {
-                indexFileRecords[i * cols, i % 2] = intsArr[i];
+                indexFileRecords[i, 0] = intsArr[i * cols];
+                indexFileRecords[i, 1] = intsArr[i * cols + 1];
             }
 
             return indexFileRecords;
         }
 
-        private static int[] BytesToInts(byte[] chunk, int B)
+        private static int[] BytesToInts(byte[] chunk)
         {
             const int bytesInInt = 4;
-            int nrOfInts = B / bytesInInt;
+            int nrOfInts = chunk.Length / bytesInInt;
             byte[] fourByte = new byte[bytesInInt];
             int[] intsArr = new int[nrOfInts];
             int intsCnt = 0, bytesCnt = 0;

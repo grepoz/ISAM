@@ -2,24 +2,38 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ISFO.MyFile;
+
 
 namespace ISFO
 {
     class Page
     {
-        List<Record> records;
+        Record[] records;
 
         public Page()
         {
-            records = new List<Record>();
+            records = InitArrayOfRecords(DBMS.recPerPage);
         }
 
-        public void Add(Record record)
+        public static Record[] InitArrayOfRecords(int length)
         {
-            records.Add(record);
+            Record[] array = new Record[length];
+            for (int i = 0; i < length; ++i)
+                array[i] = new Record();
+            return array;
+        }
+
+        public void ReplaceFirstEmpty(Record record)
+        {
+            for (int i = 0; i < records.Length; i++)
+            {
+                if(records[i].IsEmpty())
+                {
+                    records[i] = record;
+                    return;
+                }
+            }
+            throw new InvalidOperationException("Cannot replace empty record!");
         }
 
         public Record Get(int key)
@@ -27,19 +41,18 @@ namespace ISFO
             return records.ElementAt(key);
         }
 
-        public List<Record> GetRecords()
+        public Record[] GetRecords()
         {
             return records;
         }
 
-        public int GetFullfillment()
+        public bool IsFull()
         {
-            return records.Count();
-        }
-
-        public void Clear()
-        {
-            records.Clear();
+            foreach (var record in records)
+            {
+                if (record.IsEmpty()) return false;
+            }
+            return true;
         }
 
         public void DisplayPageContent()
@@ -50,19 +63,14 @@ namespace ISFO
             }
         }
 
-        internal bool IsEmpty()
-        {
-            return !records.Any();
-        }
-
         internal void Update(Record toBeInserted)
         {
             records[FindIndex(toBeInserted)] = toBeInserted;
         }
 
-        internal int FindIndex(Record record)
+        internal int FindIndex(Record wantedRecord)
         {
-            return records.FindIndex(rec => rec.key == record.key);
+            return Array.FindIndex(records, record => (record.key == wantedRecord.key));
         }
     }
 }

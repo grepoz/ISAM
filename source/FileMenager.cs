@@ -31,15 +31,12 @@ namespace ISFO
         {
             CreateFile(filePath);
 
-            List<Record> records = new List<Record>();
-
-            for (int i = 0; i < DBMS.defaultNrOfPages * DBMS.recPerPage; i++)
+            Record[] records = Page.InitArrayOfRecords(DBMS.recPerPage);
+            // oblicz recPerPage dynamicznie
+            for (int i = 0; i < DBMS.defaultNrOfPages; i++)
             {
-                records.Add(GetEmptyRecord());
+                WriteToFile(filePath, records, i * DBMS.B);
             }
-
-            WriteToFile(filePath, records);
-
         }
 
         private static void CreateDirectory()
@@ -56,12 +53,12 @@ namespace ISFO
                 Console.WriteLine("The process failed: {0}", e.ToString());
             }
         }
-        public MyFile GenerateFileFromConsole()
+        /*public MyFile GenerateFileFromConsole()
         {
             Console.WriteLine("\nInput several records in format: key 'space' nr 'space' nr 'enter'.");
             Console.WriteLine("To finish type 'q'");
             string userInput;
-            List<Record> userRecords = new List<Record>();
+            Record[] userRecords = Page.InitArrayOfRecords(DBMS.recPerPage);
 
             while (true)
             {
@@ -69,7 +66,7 @@ namespace ISFO
                 if (userInput.Contains("q")) break;
 
                 // checking overflow not implemented
-                if (!RecordMenager.CheckRecordFormat(userInput))
+                if (!RecordMenager.IsRecordFormatValid(userInput))
                     Console.WriteLine("Input valid values!");
                 else
                     userRecords.Add(RecordMenager.ParseStrToRecord(userInput));
@@ -79,6 +76,8 @@ namespace ISFO
 
             return consoleInputTape;
         }
+        */
+
         private void GenerateBasicIndexFile()
         {
             CreateFile(indexFile);
@@ -91,7 +90,6 @@ namespace ISFO
             }
 
             WriteToIndexFile(indexFile, fileContent);
-
         }
         public static void CreateFile(string filePath)
         {
@@ -105,23 +103,23 @@ namespace ISFO
             }
         }
 
-        //
-        // ? mozesz zmienic funkcje WriteToIndexFile na WriteToFile - chyba ze cos sie spiepszylo
-        //
-        public void WriteToIndexFile(string filePath, List<(int, int)> fileContent)
+        public static void WriteToIndexFile(string filePath, List<(int, int)> fileContent, int position = 0)
         {
             // writes list of tuples to file
             if (fileContent != null)
             {
                 try
                 {
-                    using (var fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None))
-                    using (BinaryWriter writer = new BinaryWriter(fileStream))
+                    using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None))
                     {
-                        foreach (var tup in fileContent)
+                        fs.Seek(position, SeekOrigin.Begin);
+                        using (BinaryWriter writer = new BinaryWriter(fs))
                         {
-                            writer.Write(tup.Item1);
-                            writer.Write(tup.Item2);
+                            foreach (var tup in fileContent)
+                            {
+                                writer.Write(tup.Item1);
+                                writer.Write(tup.Item2);
+                            }
                         }
                     }
                 }
@@ -133,16 +131,17 @@ namespace ISFO
             else
                 throw new InvalidOperationException("Variable fileContent is empty!");
         }
-        public void WriteToFile(string filePath, List<Record> records)
+        public static void WriteToFile(string filePath, Record[] records, int position = 0)
         {
 
             if (records != null)
             {
                 try
                 {
-                    using (var fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None))
+                    using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None))
                     {
-                        using (BinaryWriter writer = new BinaryWriter(fileStream))
+                        fs.Seek(position, SeekOrigin.Begin);
+                        using (BinaryWriter writer = new BinaryWriter(fs))
                         {                        
                             foreach (var record in records)
                             {
@@ -175,7 +174,7 @@ namespace ISFO
             {
                 foreach (string record in System.IO.File.ReadLines(filePath))
                 {
-                    if (RecordMenager.CheckTestRecordFormat(record))
+                    if (RecordMenager.IsTestRecordFormatValid(record))
                         commands.Add(record);
                     else
                         throw new InvalidOperationException("Invalid record format!");
@@ -194,11 +193,18 @@ namespace ISFO
         {
             try
             {
-                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
                     using (BinaryReader br = new BinaryReader(fs, new ASCIIEncoding()))
                     {
-                        int cnt = 0;
+                        int cnt = 0, pageNr = 0;
+
+                        int nrOfPages;
+                        if (filePath == primaryFile) nrOfPages = DBMS.nrOfPageInPrimary;
+                        else nrOfPages = DBMS.nrOfPageInOverflow;
+
+                        string fileName = Path.GetFileName(filePath);
+                        Console.WriteLine("###### {0} ######", fileName);
 
                         while (br.BaseStream.Position != br.BaseStream.Length)
                         { 
@@ -206,9 +212,13 @@ namespace ISFO
                             {
                                 Console.WriteLine();
                                 // error defaultNrOfPages is changing
-                                if (cnt % (DBMS.defaultNrOfPages * DBMS.recPerPage) == 0) {
+
+                                // display 
+                                if (cnt % (DBMS.nrOfIntsInRecord * DBMS.recPerPage) == 0) {
                                     cnt = 0;
-                                    Console.WriteLine("-----------------------");
+                                    Console.WriteLine("--------- Page " + (pageNr++ + 1) + " ---------");
+
+                                    if (pageNr % nrOfPages == 0) pageNr = 0;
                                 }                             
                             }
 
@@ -217,7 +227,7 @@ namespace ISFO
                         }
                     }
                 }
-                Console.WriteLine();
+                Console.WriteLine("\n==========================\n");
             }
             catch (Exception)
             {
@@ -236,12 +246,12 @@ namespace ISFO
 
         public static string GetPrimaryFileName()
         {
-            return indexFile;
+            return primaryFile;
         }
         
         public static string GetOverflowFileName()
         {
-            return indexFile;
+            return overflowFile;
         }
         public static string GetTestFileName()
         {

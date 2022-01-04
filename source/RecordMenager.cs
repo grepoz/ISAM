@@ -7,7 +7,7 @@ namespace ISFO
     class RecordMenager
     {
 
-        public static bool CheckRecordFormat(string record)
+        public static bool IsRecordFormatValid(string record)
         {
             Regex rx = new Regex("^([0-9]+) ([0-9]+) ([0-9]+)$");
             MatchCollection matches = rx.Matches(record);
@@ -15,7 +15,7 @@ namespace ISFO
         }
 
         
-        public static bool CheckTestRecordFormat(string testRecord)
+        public static bool IsTestRecordFormatValid(string testRecord)
         {
             Regex rx = new Regex("^(INS|AKT|DEL) ([0-9]+) ([0-9]+) ([0-9]+)$");
             MatchCollection matches = rx.Matches(testRecord);
@@ -39,22 +39,14 @@ namespace ISFO
             Page page = new Page();
 
             int[] intsArr = BytesToInts(chunk);
-            const int bytesInInt = 4;
-            int nrOfInts = chunk.Length / bytesInInt;
+            //const int bytesInInt = 4;
+            //int nrOfInts = chunk.Length / bytesInInt;
+            //int nrOfRecords = nrOfInts / DBMS.nrOfIntsInRecord; // instead of 'DBMS.recPerPage' becouse we could read less than whole site
 
-            // nie za dużo!!!!
-            for (int i = 0; i < nrOfInts; i++)
+            for (int i = 0; i < DBMS.recPerPage; i++)
             {
                 int k = i * DBMS.nrOfIntsInRecord;
-
-                Record record = new Record(
-                    intsArr[k+ 0], 
-                    intsArr[k + 1], 
-                    intsArr[k + 2], 
-                    intsArr[k + 3], 
-                    intsArr[k + 4]);
-
-                page.Add(record);
+                page.GetRecords()[i] = new Record(intsArr[k+ 0], intsArr[k + 1], intsArr[k + 2], intsArr[k + 3], intsArr[k + 4]);
             }
 
             return page;

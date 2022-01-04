@@ -31,5 +31,10 @@ namespace ISFO.source
 
         public int[] ToIntArr() => new int[] { key, data1, data2, deleted, next };
 
+        public bool IsEmpty()
+        {
+            return (key == 0 && data1 == 0 && data2 == 0 && deleted == 0 && next == -1);
+        }
+
     }
 }

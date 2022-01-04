@@ -12,9 +12,9 @@ namespace ISFO
     {
         private readonly string filePath;
 
-        private List<Record> records;
+        private Record[] records;
 
-        public MyFile(string filePath, List<Record> records)
+        public MyFile(string filePath, Record[] records)
         {
             this.filePath = filePath;
             this.records = records;

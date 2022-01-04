@@ -16,9 +16,21 @@ namespace ISFO
 
             fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
 
-            Record testRecord = new Record(2, 3, 4);
+            List<Record> testRecords = new List<Record>();
+            int nrOfTestRecs = 5;
+            for (int i = 0; i < nrOfTestRecs; i++)
+            {
+                testRecords.Add(new Record(i + 1, (i + 1) * 2, (i + 1) * 4));
+            }
 
-            dbms.InsertRecord(testRecord);
+            foreach (var record in testRecords)
+            {
+                dbms.InsertRecord(record);
+            }
+
+            Console.WriteLine("After update!");
+            fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
+            fm.DisplayFileContent(FileMenager.GetOverflowFileName());
 
             //List<string> commands = fm.ReadTestFile();
 

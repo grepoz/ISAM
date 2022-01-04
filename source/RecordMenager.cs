@@ -1,11 +1,6 @@
 ﻿using ISFO.source;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static ISFO.MyFile;
 
 namespace ISFO
 {
@@ -35,9 +30,8 @@ namespace ISFO
             if (!Int32.TryParse(strNrs[0], out int key)) key = Int32.MaxValue;
             if (!Int32.TryParse(strNrs[1], out int r)) r = Int32.MaxValue;
             if (!Int32.TryParse(strNrs[2], out int h)) h = Int32.MaxValue;
-            (int, int) data = (r, h);
 
-            return new Record(key, data);
+            return new Record(key, r, h);
         }
 
         public static unsafe Page BytesToPage(byte[] chunk, int B)
@@ -54,9 +48,10 @@ namespace ISFO
 
                 Record record = new Record(
                     intsArr[k+ 0], 
-                    (intsArr[k + 1], intsArr[k + 2]), 
+                    intsArr[k + 1], 
+                    intsArr[k + 2], 
                     intsArr[k + 3], 
-                    (int*)intsArr[k + 4]);
+                    intsArr[k + 4]);
 
                 page.Add(record);
             }

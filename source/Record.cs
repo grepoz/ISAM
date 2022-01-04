@@ -6,37 +6,34 @@ using System.Threading.Tasks;
 
 namespace ISFO.source
 {
-    [Serializable()]
-    unsafe class Record
+    class Record
     {
 
-        int key;
-        (int, int) data;
-        int deleted;   // 0 - false, 1 - true
-        int* next;
+        public int key, data1, data2;
+        public int deleted;    // 0 - false, 1 - true
+        public int next;       // index of next record, if equals '-1' its empty
 
-        public Record(int key, (int, int) data, int deleted = 0, int* next = null)
+        public Record(int key, int data1, int data2, int deleted = 0, int next = -1)
         {
             this.key = key;
-            this.data = data;
+            this.data1 = data1;
+            this.data2 = data2;
             this.deleted = deleted;
             this.next = next;
         }
 
-        public Record(int key = 0)
+        public Record()
         {
-            this.key = key;
-            this.data = (0, 0);
-            this.deleted = 0;
-            this.next = null;
+            key = data1 = data2 = deleted = 0;
+            next = -1;
         }
 
-        public override string ToString() => $"[ key:{key}, data: ({data.Item1}, {data.Item1}), deleted: {deleted} ]";
 
-        private object ToTuple()
+        public override string ToString() => $"[ key:{key}, data: ({data1}, {data2}), deleted: {deleted} ]";
+
+        public int[] ToIntArr()
         {
-            // is this cast correct
-            return (this.key, this.data, this.deleted, (int)this.next);
+            return new int[] {key, data1, data2, deleted, next };
         }
 
     }

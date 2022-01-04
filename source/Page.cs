@@ -27,6 +27,11 @@ namespace ISFO
             return records.ElementAt(key);
         }
 
+        public List<Record> GetRecords()
+        {
+            return records;
+        }
+
         public int GetFullfillment()
         {
             return records.Count();
@@ -45,6 +50,19 @@ namespace ISFO
             }
         }
 
+        internal bool IsEmpty()
+        {
+            return !records.Any();
+        }
 
+        internal void Update(Record toBeInserted)
+        {
+            records[FindIndex(toBeInserted)] = toBeInserted;
+        }
+
+        internal int FindIndex(Record record)
+        {
+            return records.FindIndex(rec => rec.key == record.key);
+        }
     }
 }

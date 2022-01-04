@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ISFO.source;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,14 +9,15 @@ namespace ISFO
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
+            FileMenager fm = new FileMenager();
 
+            fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
 
+            //List<string> commands = fm.ReadTestFile();
 
-            List<string> commands = FileMenager.ReadTestFile();
-
-
+            Console.ReadKey();
         }
     }
 }

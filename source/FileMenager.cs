@@ -14,8 +14,8 @@ namespace ISFO
     {
         private const string ext = ".bin";
         private static readonly string dirPath = Directory.GetCurrentDirectory().ToString() + @"\files";
-        private static readonly string indexFile = dirPath + @"\" + "index" + ext; 
-        private static readonly string primaryFile = dirPath + @"\" + "primary" + ext;     
+        private static readonly string indexFile = dirPath + @"\" + "index" + ext;
+        private static readonly string primaryFile = dirPath + @"\" + "primary" + ext;
         private static readonly string overflowFile = dirPath + @"\" + "overflow" + ext;
         private static readonly string testFile = dirPath + @"\" + "test" + ext;
 
@@ -23,22 +23,22 @@ namespace ISFO
         {
             CreateDirectory();
             GenerateBasicIndexFile();
-            GeneratePrimaryFile();
-            GenerateOverflowFile();
+            GenerateAreaFile(primaryFile);
+            GenerateAreaFile(overflowFile);
         }
 
-        private void GeneratePrimaryFile()
+        private void GenerateAreaFile(string filePath)
         {
-            GenerateFile(primaryFile);
+            CreateFile(filePath);
 
-            List<Record> fileContent = new List<Record>();
+            List<Record> records = new List<Record>();
 
-            for (int i = 0; i < DBMS.defaultNrOfPages; i++)
+            for (int i = 0; i < DBMS.defaultNrOfPages * DBMS.recPerPage; i++)
             {
-                fileContent.Add(MyFile.GetEmptyRecord());
+                records.Add(GetEmptyRecord());
             }
 
-            
+            WriteToFile(filePath, records);
 
         }
 
@@ -81,7 +81,7 @@ namespace ISFO
         }
         private void GenerateBasicIndexFile()
         {
-            GenerateFile(indexFile);
+            CreateFile(indexFile);
 
             List<(int, int)> fileContent = new List<(int, int)>();
 
@@ -93,7 +93,7 @@ namespace ISFO
             WriteToIndexFile(indexFile, fileContent);
 
         }
-        public static void GenerateFile(string filePath)
+        public static void CreateFile(string filePath)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace ISFO
         }
 
         //
-        //  mozesz zmienic funkcje WriteToIndexFile na WriteToFile - chyba ze cos sie spiepszylo
+        // ? mozesz zmienic funkcje WriteToIndexFile na WriteToFile - chyba ze cos sie spiepszylo
         //
         public void WriteToIndexFile(string filePath, List<(int, int)> fileContent)
         {
@@ -143,16 +143,14 @@ namespace ISFO
                     using (var fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None))
                     {
                         using (BinaryWriter writer = new BinaryWriter(fileStream))
-                        {
-                            
+                        {                        
                             foreach (var record in records)
                             {
-                                var recordAsTuple = RecordToTuple(record);
-                                foreach (var item in recordAsTuple)
+                                var recordAsIntArr = record.ToIntArr();
+                                foreach (var item in recordAsIntArr)
                                 {
-
-                                }
-                                writer.Write(ObjectToByteArray(record));
+                                    writer.Write(item);
+                                }                              
                             }
                         }
                     }
@@ -166,7 +164,7 @@ namespace ISFO
                 throw new InvalidOperationException("Variable fileContent is empty!");
         }
 
-        public static List<string> ReadTestFile(string filePath = "")
+        public List<string> ReadTestFile(string filePath = "")
         {
             if (filePath == "") filePath = testFile;
 
@@ -191,6 +189,63 @@ namespace ISFO
             }
         }
 
+
+        public void DisplayFileContent(string filePath)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    using (BinaryReader br = new BinaryReader(fs, new ASCIIEncoding()))
+                    {
+                        int cnt = 0;
+
+                        while (br.BaseStream.Position != br.BaseStream.Length)
+                        { 
+                            if (cnt % DBMS.nrOfIntsInRecord == 0)
+                            {
+                                Console.WriteLine();
+                                if(cnt % (DBMS.defaultNrOfPages * DBMS.recPerPage) == 0) {
+                                    cnt = 0;
+                                    Console.WriteLine("-----------------------");
+                                }                             
+                            }
+
+                            Console.Write(BitConverter.ToInt32(br.ReadBytes(4), 0) + " ");
+                            cnt++;
+                        }
+                    }
+                }
+                Console.WriteLine();
+            }
+            catch (Exception)
+            {
+                throw new InvalidOperationException("File is empty or does not exist!");
+            }
+
+        }
+
+
+
+
+        public static string GetIndexFileName()
+        {
+            return indexFile;
+        }
+
+        public static string GetPrimaryFileName()
+        {
+            return indexFile;
+        }
+        
+        public static string GetOverflowFileName()
+        {
+            return indexFile;
+        }
+        public static string GetTestFileName()
+        {
+            return testFile;
+        }
     }
 
 

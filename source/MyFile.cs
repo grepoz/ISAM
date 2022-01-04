@@ -22,7 +22,7 @@ namespace ISFO
 
         public static Record GetEmptyRecord()
         {
-            return new Record(0);
+            return new Record();
         }
 
     }

@@ -27,13 +27,28 @@ namespace ISFO.source
             next = -1;
         }
 
-        public override string ToString() => $"[ key:{key}, data: ({data1}, {data2}), deleted: {deleted} ]\n";
+        public override string ToString() {
+            string deletedChar = (deleted == 0) ? " " : "D";
+            string nextChar = (next == -1) ? " " : next.ToString();
+            //return $"{deletedChar}| [ key:{key}, data: ({data1}, {data2}), next: {nextChar} ]\n";
+            return $"{deletedChar}| [ key:{key}, next: {nextChar} ]\n";
+        } 
 
         public int[] ToIntArr() => new int[] { key, data1, data2, deleted, next };
 
         public bool IsEmpty()
         {
             return (key == 0 && data1 == 0 && data2 == 0 && deleted == 0 && next == -1);
+        }
+
+        public bool HasNext()
+        {
+            return next != -1;
+        }
+
+        public void WriteToFile(string filePath, int indexInOverflow)
+        {
+            FileMenager.WriteToFile(filePath, new[] { this }, indexInOverflow * DBMS.R);
         }
 
     }

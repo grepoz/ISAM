@@ -63,9 +63,15 @@ namespace ISFO
             }
         }
 
-        internal void Update(Record toBeInserted)
+        internal void Update(Record toBeUpdated)
         {
-            records[FindIndex(toBeInserted)] = toBeInserted;
+            // change next!!!!!!!!!!!!
+            records[FindIndex(toBeUpdated)] = toBeUpdated;
+        }
+
+        internal void UpdateData(Record toBeUpdated)
+        {
+            records[FindIndex(toBeUpdated)] = toBeUpdated;
         }
 
         internal int FindIndex(Record wantedRecord)

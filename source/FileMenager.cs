@@ -32,6 +32,7 @@ namespace ISFO
             CreateFile(filePath);
 
             Record[] records = Page.InitArrayOfRecords(DBMS.recPerPage);
+
             // oblicz recPerPage dynamicznie
             for (int i = 0; i < DBMS.defaultNrOfPages; i++)
             {
@@ -143,14 +144,14 @@ namespace ISFO
                     {
                         fs.Seek(position, SeekOrigin.Begin);
                         using (BinaryWriter writer = new BinaryWriter(fs))
-                        {                        
+                        {
                             foreach (var record in records)
                             {
                                 var recordAsIntArr = record.ToIntArr();
                                 foreach (var item in recordAsIntArr)
                                 {
                                     writer.Write(item);
-                                }                              
+                                }
                             }
                         }
                     }
@@ -188,9 +189,22 @@ namespace ISFO
                 throw new InvalidOperationException("File does not!");
             }
         }
-
-
         public void DisplayFileContent(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            Console.WriteLine($"###### {fileName} ######");
+            for (int position = 0; position < DBMS.GetNrOfPagesOfFile(filePath); position++)
+            {
+                Console.WriteLine($"------ Page: {position + 1} ------");
+                Page page = DBMS.ReadPage(filePath, position * DBMS.B);
+                foreach (var record in page.GetRecords())
+                {
+                    Console.Write(record.ToString());
+                }
+            }
+        }
+
+        /*public void DisplayFileContent(string filePath)
         {
             try
             {
@@ -237,7 +251,7 @@ namespace ISFO
 
         }
 
-
+        */
 
 
         public static string GetIndexFileName()

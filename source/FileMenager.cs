@@ -22,7 +22,7 @@ namespace ISFO
         public FileMenager()
         {
             CreateDirectory();
-            GenerateBasicIndexFile();
+            GenerateIndexFile();
             GenerateAreaFile(primaryFile);
             GenerateAreaFile(overflowFile);
         }
@@ -37,6 +37,7 @@ namespace ISFO
             {
                 WriteToFile(filePath, records, i * DBMS.B);
             }
+
         }
 
         private static void CreateDirectory()
@@ -78,7 +79,7 @@ namespace ISFO
         }
         */
 
-        private void GenerateBasicIndexFile()
+        private void GenerateIndexFile()
         {
             CreateFile(indexFile);
 

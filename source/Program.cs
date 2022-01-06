@@ -17,10 +17,10 @@ namespace ISFO
             fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
 
             List<Record> testRecords = new List<Record>();
-            int nrOfTestRecs = 5;
+            int nrOfTestRecs = 4;
             for (int i = 0; i < nrOfTestRecs; i++)
             {
-                testRecords.Add(new Record(i + 1, (i + 1) * 2, (i + 1) * 4));
+                testRecords.Add(new Record(4 - i , (i + 1) * 2, (i + 1) * 4));
             }
 
             foreach (var record in testRecords)

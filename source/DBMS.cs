@@ -20,10 +20,32 @@ namespace ISFO.source
         public const int recPerPage = B / R;
         public const double delta = 0.2;  // fullfillment of overflow ratio to fullfillment of primary 
 
+
+        // change after reorganisation
         public static int nrOfPageInPrimary = defaultNrOfPages;
         public static int nrOfPageInOverflow = defaultNrOfPages;
 
         private int nextEmptyOverflowIndex = 0;
+
+        public DBMS()
+        {
+            if (File.Exists(FileMenager.GetPrimaryFileName()))
+            {
+                InsertSpecialFirstRecordToPrimary();
+            }
+            else
+            {
+                throw new InvalidOperationException("File menager did not create primary file!");
+            }
+        }
+
+        private void InsertSpecialFirstRecordToPrimary()
+        {
+            Record toBeInserted = new Record(0, 0, 0, 1, -1);
+            Page page = ReadPage(FileMenager.GetPrimaryFileName(), 0);
+            page.ReplaceFirstEmpty(toBeInserted);
+            FileMenager.WriteToFile(FileMenager.GetPrimaryFileName(), page.GetRecords(), 0);
+        }
 
         public Page ReadPage(string filePath, int position)
         {
@@ -86,22 +108,24 @@ namespace ISFO.source
 
             Page page = ReadPage(FileMenager.GetPrimaryFileName(), (pageNr - 1) * B);
 
-            string filePathToWriteTo = ChoosePlaceAndInsert(page, toBeInserted);
-
-            FileMenager.WriteToFile(filePathToWriteTo, page.GetRecords(), (pageNr - 1) * B);
+            ChoosePlaceAndInsert(page, toBeInserted, pageNr);
+            // page.GetRecords() jest zawsze rowne 1 stronie primary
+            
 
         }
 
-        private string ChoosePlaceAndInsert(Page page, Record toBeInserted)
+        private void ChoosePlaceAndInsert(Page page, Record toBeInserted, int pageNr)
         {
             Record prevRecord = null;
-            // if(
+            
             foreach (var record in page.GetRecords())
             {
                 if (record.IsEmpty())
                 {
+                    
                     page.ReplaceFirstEmpty(toBeInserted);
-                    return FileMenager.GetPrimaryFileName();
+                    FileMenager.WriteToFile(FileMenager.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
+                    return;                  
                 }
                 else if(record.key < toBeInserted.key)
                 {
@@ -110,13 +134,15 @@ namespace ISFO.source
                 else if (record.key > toBeInserted.key)
                 {                   
                     InsertToOverflowFile(toBeInserted);
+                    prevRecord = record;
                     prevRecord.next = nextEmptyOverflowIndex++;     
-                    return FileMenager.GetPrimaryFileName();
+                    return;
                 }
                 else // ==
                 {
                     page.Update(toBeInserted);
-                    return FileMenager.GetPrimaryFileName();
+                    FileMenager.WriteToFile(FileMenager.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
+                    return;
                 }
 
             }
@@ -132,29 +158,43 @@ namespace ISFO.source
 
                 prevRecord.next = nextEmptyOverflowIndex++;
 
-                return FileMenager.GetOverflowFileName();
+                return;
             }
             else
             {
                 page.ReplaceFirstEmpty(toBeInserted);
-                return FileMenager.GetPrimaryFileName();
+                FileMenager.WriteToFile(FileMenager.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
+                return;
             }
+            // if function return earlier - record was inserted to overflow file,
+            // otherwise record will be inserted to primary
+
+            
         }
 
         private void InsertToOverflowFile(Record toBeInserted)
         {
             bool inserted = false;
-            for (int i = 0; i < nrOfPageInOverflow && !inserted; i++) 
+            Page page = null;
+            int pageNr;
+            for (pageNr = 0; pageNr < nrOfPageInOverflow && !inserted; pageNr++) 
             {
-                Page page = ReadPage(FileMenager.GetOverflowFileName(), i* B);
+                page = ReadPage(FileMenager.GetOverflowFileName(), pageNr * B);
 
                 if (!page.IsFull())
                 {
                     page.ReplaceFirstEmpty(toBeInserted);
+                    FileMenager.WriteToFile(FileMenager.GetOverflowFileName(), page.GetRecords(), pageNr * B);
                     inserted = true;
                 }
             }
-            if(!inserted) throw new InvalidOperationException("Enable to insert record to overflow area!");
+
+            // error - what if inserted record to overflow should be pointed by another record from overflow
+
+            if (!inserted) {
+                throw new InvalidOperationException("Enable to insert record to overflow area!");
+            }
+            
 
             //if (IsReorganisation()) Reorganise();
 
@@ -183,7 +223,6 @@ namespace ISFO.source
             }
         }
 
-
         private void ValidRecord(Record record)
         {
             if (record.key <= 0) {
@@ -206,13 +245,102 @@ namespace ISFO.source
             }
         }
 
-        public int FindPageToInsertTo()
+
+        public void DisplayDBContent()
         {
+            for (int pageNr = 0; pageNr < nrOfPageInPrimary; pageNr++)
+            {
+                Page page = ReadPage(FileMenager.GetPrimaryFileName(), pageNr * B);
+
+                foreach (var record in page.GetRecords())
+                {
+                    if (record.IsEmpty())
+                    {
+                        // we know that first record is empty so we know that page is empty,
+                        // but next pages may contain records
+                        break;
+                    }
+                    else
+                    {
+                        record.ToString();
+                        if(record.next != -1)
+                        {
+                            // we know that record points to next reocrd
+
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private Record GetRecord(int keyOfRecToFound)
+        {
+            int pageNr = GetPageNr(keyOfRecToFound);
+
+            Page page = ReadPage(FileMenager.GetPrimaryFileName(), (pageNr - 1) * B);
+
+            Record prevRecord = null;
+
+            foreach (var record in page.GetRecords())
+            {
+                if (record.IsEmpty() && record.deleted == 0)
+                {
+                    // record does not exist
+                }
+                else if (record.key < keyOfRecToFound)
+                {
+                    prevRecord = record;
+                }
+                else if (record.key == keyOfRecToFound)
+                {
+                    return record;
+                }
+                else //if (record.key > key)
+                {
+                    // szukamy w overflow pod indeksem record.next
+                    int indexInOverflow = prevRecord.next;
+                    if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
+
+                    int overflowPageNr = GetOverflowPageNr(indexInOverflow);
+
+                    Page overflowPage = ReadPage(FileMenager.GetOverflowFileName(), (overflowPageNr - 1) * B);
+
+                    int indexInPage = indexInOverflow % recPerPage;
+                    Record toFound = overflowPage.GetRecords().ElementAt(indexInPage);
+                    if (!toFound.IsEmpty()) 
+                    {
+                        if(toFound.key == keyOfRecToFound)
+                        {
+                            return overflowPage.GetRecords().ElementAt(indexInPage);
+                        }
+                        else if (toFound.next == -1)
+                        {
+                            throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
+                        }
+                        else
+                        {
+                            // we have to dive deeeeper..
+                            // create recursive function!
+                            return null;
+                         }
 
 
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
+                    }
+                    
+                }
 
+            }
 
-            return 0;
+        }
+
+        private int GetOverflowPageNr(int indexInOverflow)
+        {
+            return (int)Math.Ceiling((indexInOverflow + 1.0f) / (double)recPerPage);
         }
 
     }

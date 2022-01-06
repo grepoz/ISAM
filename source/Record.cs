@@ -27,7 +27,7 @@ namespace ISFO.source
             next = -1;
         }
 
-        public override string ToString() => $"[ key:{key}, data: ({data1}, {data2}), deleted: {deleted} ]";
+        public override string ToString() => $"[ key:{key}, data: ({data1}, {data2}), deleted: {deleted} ]\n";
 
         public int[] ToIntArr() => new int[] { key, data1, data2, deleted, next };
 

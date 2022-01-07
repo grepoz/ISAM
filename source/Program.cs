@@ -32,6 +32,7 @@ namespace ISFO
 
             Console.WriteLine($"Found: {dbms.ReadRecord(key: 7)}");
 
+            dbms.DisplayDBAscending();
 
             //List<string> commands = fm.ReadTestFile();
 

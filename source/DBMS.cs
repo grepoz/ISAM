@@ -328,11 +328,12 @@ namespace ISFO.source
                     }
                     else
                     {
-                        record.ToString();
+                        Console.WriteLine(record.ToString());
                         if(record.next != -1)
                         {
-                            // we know that record points to next record
-
+                            // wef know that record points to next record
+                            DisplayOverflowChain(record);
+                            
                         }
                     }
                 }
@@ -340,9 +341,54 @@ namespace ISFO.source
 
         }
 
-        public Record GetRecord(int keyOfRecToFound)
+        private void DisplayOverflowChain(Record anchor)
         {
-            int pageNr = GetPageNr(keyOfRecToFound);
+            // could do better - always opening page instead of search through whole page
+            bool endOfChain = false;
+            while (!endOfChain)
+            {
+                if (anchor.HasNext())
+                {
+                    anchor = GetNextRecordFromOverflow(anchor);
+                    Console.WriteLine(anchor.ToString());
+                }
+                else
+                {
+                    endOfChain = true;
+                }
+            }
+        }
+
+        //
+        // create function that cleans chains pointers !!!!
+        //
+        private List<Record> GetOverflowChain(int anchorKey)
+        {
+            var chain = new List<Record>();
+            Record anchor = GetRecord(anchorKey);
+            bool endOfChain = false;
+            while (!endOfChain)
+            {
+                if (anchor.HasNext())
+                {
+                    anchor = GetNextRecordFromOverflow(anchor);
+                    if (anchor.deleted == 0)
+                    {
+                        chain.Add(anchor);
+                    }
+                }
+                else
+                {
+                    endOfChain = true;
+                }
+
+            }
+            return chain;
+        }
+
+        public Record GetRecord(int keyOfRecToFind)
+        {
+            int pageNr = GetPageNr(keyOfRecToFind);
 
             Page page = ReadPage(fm.GetPrimaryFileName(), (pageNr - 1) * B);
 
@@ -354,67 +400,98 @@ namespace ISFO.source
                 {
                     return null;
                 }
-                else if (record.key < keyOfRecToFound)
+                else if (record.key < keyOfRecToFind)
                 {
                     prevRecord = record;
                 }
-                else if (record.key == keyOfRecToFound)
+                else if (record.key == keyOfRecToFind)
                 {
                     return record;
                 }
                 else //if (record.key > key)
                 {
-                    // szukamy w overflow pod indeksem record.next
-                    bool isFound = false;
-                    Record toFound = null;
-                    while (!isFound)
-                    {                      
-                        int indexInOverflow = prevRecord.next;
-                        if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
-
-                        int overflowPageNr = GetOverflowPageNr(indexInOverflow);
-                        int overflowPageNrSecondAttepmt = -1;
-                        Page overflowPage = null;
-                        if (overflowPageNr != overflowPageNrSecondAttepmt)
-                        {
-                            overflowPage = ReadPage(fm.GetOverflowFileName(), (overflowPageNr - 1) * B);
-                        }
-
-                        int indexInPage = indexInOverflow % recPerPage;
-                        toFound = overflowPage.GetRecords().ElementAt(indexInPage);
-
-                        if (!toFound.IsEmpty())
-                        {
-                            if (toFound.key == keyOfRecToFound)
-                            {
-                                isFound = true;
-                            }
-                            else if (toFound.next != -1)
-                            {
-                                // we have to dive deeeeper..
-
-                                // check if requested record is in the downoladed page
-                                overflowPageNrSecondAttepmt = GetOverflowPageNr(toFound.next);
-                                //if (overflowPageNr == overflowPageNrSecondAttepmt)
-                                prevRecord = toFound;
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
-                            }
-
-
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
-                        }
-                    }
-                    return toFound;
+                    return GetRecordFromOverflow(prevRecord, keyOfRecToFind);
                 }
 
             }
             throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
+        }
+        public Record GetNextRecordFromOverflow(Record prevRecord)
+        {
+            if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
+            bool isFound = false;
+            Record toFound = null;
+            while (!isFound)
+            {
+                int indexInOverflow = prevRecord.next;
+
+                int overflowPageNr = GetOverflowPageNr(indexInOverflow);
+                int overflowPageNrSecondAttepmt = -1;
+                Page overflowPage = null;
+                if (overflowPageNr != overflowPageNrSecondAttepmt)
+                {
+                    overflowPage = ReadPage(fm.GetOverflowFileName(), (overflowPageNr - 1) * B);
+                }
+
+                int indexInPage = indexInOverflow % recPerPage;
+                toFound = overflowPage.GetRecords().ElementAt(indexInPage);
+
+                if (toFound.IsEmpty())
+                {
+                    throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
+                }
+                else
+                {
+                    isFound = true;
+                }
+
+            }
+            return toFound;
+
+        }
+        public Record GetRecordFromOverflow(Record prevRecord, int keyOfRecToFind)
+        {
+            if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
+            bool isFound = false;
+            Record toFound = null;
+            while (!isFound)
+            {
+                int indexInOverflow = prevRecord.next;
+                
+                int overflowPageNr = GetOverflowPageNr(indexInOverflow);
+                int overflowPageNrSecondAttepmt = -1;
+                Page overflowPage = null;
+                if (overflowPageNr != overflowPageNrSecondAttepmt)
+                {
+                    overflowPage = ReadPage(fm.GetOverflowFileName(), (overflowPageNr - 1) * B);
+                }
+
+                int indexInPage = indexInOverflow % recPerPage;
+                toFound = overflowPage.GetRecords().ElementAt(indexInPage);
+
+                if (!toFound.IsEmpty())
+                {
+                    if (toFound.key == keyOfRecToFind)
+                    {
+                        isFound = true;
+                    }
+                    else if (toFound.next != -1) 
+                    {
+                        // we have to dive deeeeper..
+
+                        // check if requested record is in the downoladed page
+                        overflowPageNrSecondAttepmt = GetOverflowPageNr(toFound.next);
+                        prevRecord = toFound;                      
+                    }
+                    else throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
+                }
+                else
+                {
+                    throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
+                }
+            }
+            return toFound;
+
         }
 
         private int GetOverflowPageNr(int indexInOverflow)

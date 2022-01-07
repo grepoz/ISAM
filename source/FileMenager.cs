@@ -240,7 +240,7 @@ namespace ISFO
         */
 
 
-        public static string GetIndexFileName()
+        public string GetIndexFileName()
         {
             return indexFile;
         }
@@ -254,6 +254,7 @@ namespace ISFO
         {
             return overflowFile;
         }
+        
         public static string GetTestFileName()
         {
             return testFile;

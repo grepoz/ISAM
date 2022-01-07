@@ -24,6 +24,7 @@ namespace ISFO.source
         // change after reorganisation
         public static int nrOfPageInPrimary = defaultNrOfPages;
         public static int nrOfPageInOverflow = defaultNrOfPages;
+        public static int nrOfPageInIndex = defaultNrOfPages;
 
         private int nextEmptyOverflowIndex;
         private FileMenager fm;
@@ -253,8 +254,14 @@ namespace ISFO.source
 
             
 
-            //if (IsReorganisation()) Reorganise();
+            if (IsReorganisation()) Reorganise();
 
+        }
+
+        private bool IsReorganisation()
+        {
+            return nrOfOverflowRecords / nrOfPrimaryRecords >= alpha;
+             
         }
 
         private int GetOverflowRecIndexInPage(int globalIndex)
@@ -269,7 +276,7 @@ namespace ISFO.source
 
             while (true)
             {
-                int[,] indexPage = ReadIndexPage(FileMenager.GetIndexFileName(), position);
+                int[,] indexPage = ReadIndexPage(fm.GetIndexFileName(), position);
 
                 int prevKey = 0;
 
@@ -306,11 +313,6 @@ namespace ISFO.source
             {
                 throw new InvalidOperationException("Inserted record cannot point to another record!");
             }
-        }
-
-        public void DisplayIndexContent()
-        {
-            
         }
 
         public void DisplayDBAscending()
@@ -356,6 +358,21 @@ namespace ISFO.source
                 else
                 {
                     endOfChain = true;
+                }
+            }
+        }
+
+        public void DisplayFileContent(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            Console.WriteLine($"###### {fileName} ######");
+            for (int position = 0; position < GetNrOfPagesOfFile(filePath); position++)
+            {
+                Console.WriteLine($"------ Page: {position + 1} ------");
+                Page page = DBMS.ReadPage(filePath, position * DBMS.B);
+                foreach (var record in page.GetRecords())
+                {
+                    Console.Write(record.ToString());
                 }
             }
         }
@@ -506,6 +523,8 @@ namespace ISFO.source
                 return nrOfPageInPrimary;
             else if (filePath == fm.GetOverflowFileName())
                 return nrOfPageInOverflow;
+            else if (filePath == fm.GetIndexFileName())
+                return nrOfPageInIndex;
             else
                 throw new InvalidOperationException("Cannot get nr of pages!");
         }
@@ -516,21 +535,6 @@ namespace ISFO.source
             Record foundedrecord = GetRecord(key);
             return (foundedrecord != null) ? foundedrecord.ToString() : "Record doesn't exist!";
 
-        }
-
-        public void DisplayFileContent(string filePath)
-        {
-            string fileName = Path.GetFileName(filePath);
-            Console.WriteLine($"###### {fileName} ######");
-            for (int position = 0; position < GetNrOfPagesOfFile(filePath); position++)
-            {
-                Console.WriteLine($"------ Page: {position + 1} ------");
-                Page page = DBMS.ReadPage(filePath, position * DBMS.B);
-                foreach (var record in page.GetRecords())
-                {
-                    Console.Write(record.ToString());
-                }
-            }
         }
 
         public void DeleteRecord(int key)

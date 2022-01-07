@@ -72,14 +72,14 @@ namespace ISFO
 
         internal void UpdateData(Record freshRecord)
         {
-            Record toBeUpdated = records[FindIndex(freshRecord.key)];
-            toBeUpdated.data1 = freshRecord.data1;
-            toBeUpdated.data2 = freshRecord.data2;
+            Record toBeUpdated = records[FindIndex(freshRecord.GetKey())];
+            toBeUpdated.SetData1(freshRecord.GetData1());
+            toBeUpdated.SetData2(freshRecord.GetData2());
         }
 
         internal int FindIndex(int key)
         {
-            return Array.FindIndex(records, record => (record.key == key));
+            return Array.FindIndex(records, record => (record.GetKey() == key));
         }
     }
 }

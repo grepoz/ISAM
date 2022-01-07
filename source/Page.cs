@@ -9,7 +9,7 @@ namespace ISFO
     class Page
     {
         Record[] records;
-
+        public int nr;
         public Page()
         {
             records = InitArrayOfRecords(DBMS.recPerPage);
@@ -63,20 +63,23 @@ namespace ISFO
             }
         }
 
-        internal void Update(Record toBeUpdated)
+        internal void Update(int key, Record toBeUpdated)
         {
+            // function updates whole every filed in record 
             // change next!!!!!!!!!!!!
-            records[FindIndex(toBeUpdated)] = toBeUpdated;
+            records[FindIndex(key)] = toBeUpdated;
         }
 
-        internal void UpdateData(Record toBeUpdated)
+        internal void UpdateData(Record freshRecord)
         {
-            records[FindIndex(toBeUpdated)] = toBeUpdated;
+            Record toBeUpdated = records[FindIndex(freshRecord.key)];
+            toBeUpdated.data1 = freshRecord.data1;
+            toBeUpdated.data2 = freshRecord.data2;
         }
 
-        internal int FindIndex(Record wantedRecord)
+        internal int FindIndex(int key)
         {
-            return Array.FindIndex(records, record => (record.key == wantedRecord.key));
+            return Array.FindIndex(records, record => (record.key == key));
         }
     }
 }

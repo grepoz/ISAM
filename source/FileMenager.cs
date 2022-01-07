@@ -189,21 +189,7 @@ namespace ISFO
                 throw new InvalidOperationException("File does not!");
             }
         }
-        public void DisplayFileContent(string filePath)
-        {
-            string fileName = Path.GetFileName(filePath);
-            Console.WriteLine($"###### {fileName} ######");
-            for (int position = 0; position < DBMS.GetNrOfPagesOfFile(filePath); position++)
-            {
-                Console.WriteLine($"------ Page: {position + 1} ------");
-                Page page = DBMS.ReadPage(filePath, position * DBMS.B);
-                foreach (var record in page.GetRecords())
-                {
-                    Console.Write(record.ToString());
-                }
-            }
-        }
-
+        
         /*public void DisplayFileContent(string filePath)
         {
             try
@@ -259,12 +245,12 @@ namespace ISFO
             return indexFile;
         }
 
-        public static string GetPrimaryFileName()
+        public string GetPrimaryFileName()
         {
             return primaryFile;
         }
         
-        public static string GetOverflowFileName()
+        public string GetOverflowFileName()
         {
             return overflowFile;
         }

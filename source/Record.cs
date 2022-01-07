@@ -27,6 +27,11 @@ namespace ISFO.source
             next = -1;
         }
 
+        public Record(Record sourceRecord)
+        {
+            Copy(sourceRecord);
+        }
+
         public override string ToString() {
             string deletedChar = (deleted == 0) ? " " : "D";
             string nextChar = (next == -1) ? " " : next.ToString();
@@ -46,9 +51,24 @@ namespace ISFO.source
             return next != -1;
         }
 
-        public void WriteToFile(string filePath, int indexInOverflow)
+        public void WriteRecToFile(string filePath, int indexInOverflow)
         {
             FileMenager.WriteToFile(filePath, new[] { this }, indexInOverflow * DBMS.R);
+        }
+
+        public void Update(Record freshRecord)
+        {
+            key = freshRecord.key;
+            data1 = freshRecord.data1;
+            data2 = freshRecord.data2;
+            deleted = freshRecord.deleted;
+            next = freshRecord.next;
+
+        }
+
+        public void Copy(Record toCopy)
+        {
+            Update(toCopy);
         }
 
     }

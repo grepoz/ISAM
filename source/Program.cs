@@ -12,12 +12,10 @@ namespace ISFO
         static void Main()
         {
             FileMenager fm = new FileMenager();
-            DBMS dbms = new DBMS();
-
-            fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
+            DBMS dbms = new DBMS(fm);
 
             List<Record> testRecords = new List<Record>();
-            int nrOfTestRecs = 2;
+            const int nrOfTestRecs = 5;
             for (int i = 0; i < nrOfTestRecs; i++)
             {
                 testRecords.Add(new Record(nrOfTestRecs - i , (i + 1) * 2, (i + 1) * 4));
@@ -26,17 +24,14 @@ namespace ISFO
             foreach (var record in testRecords)
             {
                 dbms.InsertRecord(record);
-                Console.WriteLine("Insert " + ++cnt);
-                fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
-                fm.DisplayFileContent(FileMenager.GetOverflowFileName());
+                Console.WriteLine($"\nInsert {++cnt}\n" );
+                dbms.DisplayFileContent(fm.GetPrimaryFileName());
+                dbms.DisplayFileContent(fm.GetOverflowFileName());
 
             }
 
-            Console.WriteLine($"Found: {dbms.GetRecord(keyOfRecToFound: 1)}");
+            Console.WriteLine($"Found: {dbms.ReadRecord(key: 7)}");
 
-            Console.WriteLine("After update!");
-            fm.DisplayFileContent(FileMenager.GetPrimaryFileName());
-            fm.DisplayFileContent(FileMenager.GetOverflowFileName());
 
             //List<string> commands = fm.ReadTestFile();
 

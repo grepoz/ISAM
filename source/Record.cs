@@ -8,9 +8,9 @@ namespace ISFO.source
 {
     class Record
     {
-        public int key, data1, data2;
-        public int deleted;    // 0 - false, 1 - true
-        public int next;       // index of next record, if equals '-1' its empty
+        private int key, data1, data2;
+        private int deleted;    // 0 - false, 1 - true
+        private int next;       // index of next record, if equals '-1' its empty
 
         public Record(int key, int data1, int data2, int deleted = 0, int next = -1)
         {
@@ -41,6 +41,65 @@ namespace ISFO.source
 
         public int[] ToIntArr() => new int[] { key, data1, data2, deleted, next };
 
+        public int GetKey()
+        {
+            return key;
+        }
+        public void SetKey(int key)
+        {
+            if (key < 0)
+                throw new InvalidOperationException("Wrong values!");
+            this.key = key;
+        }
+
+        public int GetData1()
+        {
+            return data1;
+        }
+
+        public void SetData1(int data1)
+        {
+            if (data1 < 0)
+                throw new InvalidOperationException("Wrong values!");
+            this.data1 = data1;
+        }
+
+        public int GetData2()
+        {
+            return data1;
+        }
+
+        public void SetData2(int data2)
+        {
+            if (data2 < 0)
+                throw new InvalidOperationException("Wrong values!");
+            this.data2 = data2;
+        }
+
+        public int GetNext()
+        {
+            return next;
+        }
+
+        public void SetNext(int next)
+        {
+            if (next < 0)
+                throw new InvalidOperationException("Wrong values!");
+            this.next = next;
+        }
+
+        public int GetDeleted()
+        {
+            return deleted;
+        }
+
+        public void SetDeleted(int deleted)
+        {
+            if (deleted != 0 && deleted != 1)
+                throw new InvalidOperationException("Wrong values!");
+            this.deleted = deleted;
+        }
+
         public bool IsEmpty()
         {
             return (key == 0 && data1 == 0 && data2 == 0 && deleted == 0 && next == -1);
@@ -69,6 +128,11 @@ namespace ISFO.source
         public void Copy(Record toCopy)
         {
             Update(toCopy);
+        }
+
+        public void Delete()
+        {
+            deleted = 1;
         }
 
     }

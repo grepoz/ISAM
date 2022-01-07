@@ -110,7 +110,7 @@ namespace ISFO.source
         {
             ValidRecord(toBeInserted);
 
-            int pageNr = GetPageNr(toBeInserted.key);
+            int pageNr = GetPageNr(toBeInserted.GetKey());
 
             Page page = ReadPage(fm.GetPrimaryFileName(), (pageNr - 1) * B);
 
@@ -132,11 +132,11 @@ namespace ISFO.source
                     FileMenager.WriteToFile(fm.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
                     return;                  
                 }
-                else if(record.key < toBeInserted.key)
+                else if(record.GetKey() < toBeInserted.GetKey())
                 {
                     prevRecord = record;
                 }
-                else if (record.key > toBeInserted.key)
+                else if (record.GetKey() > toBeInserted.GetKey())
                 {                   
                     InsertToOverflowFile(toBeInserted, prevRecord, page);
 
@@ -206,26 +206,26 @@ namespace ISFO.source
             {
                 InsertToOverflowFileAtEnd(toBeInserted);
 
-                prevRecord.next = nextEmptyOverflowIndex++;
+                prevRecord.SetNext(nextEmptyOverflowIndex++);
                 FileMenager.WriteToFile(fm.GetPrimaryFileName(), page.GetRecords(), (page.nr - 1) * B);
             }
             else
             {
                 //Record firstRecordInOverflow = GetRecord(prevRecord.next);
-                int overflowPageNr = GetOverflowPageNr(prevRecord.next);
+                int overflowPageNr = GetOverflowPageNr(prevRecord.GetNext());
                 Page overflowPage = ReadPage(fm.GetOverflowFileName(), (overflowPageNr -1) * B);
 
-                Record firstRecordInOverflow = overflowPage.GetRecords().ElementAt(GetOverflowRecIndexInPage(prevRecord.next));
+                Record firstRecordInOverflow = overflowPage.GetRecords().ElementAt(GetOverflowRecIndexInPage(prevRecord.GetNext()));
 
-                if (firstRecordInOverflow.key < toBeInserted.key)
+                if (firstRecordInOverflow.GetKey() < toBeInserted.GetKey())
                 {
                     // ustaw wsk i wpisz to overflow - jesli w overflow skonczylo sie miejsce
                     InsertToOverflowFileAtEnd(toBeInserted);
 
-                    firstRecordInOverflow.next = nextEmptyOverflowIndex++;
-                    firstRecordInOverflow.WriteRecToFile(fm.GetOverflowFileName(), prevRecord.next);
+                    firstRecordInOverflow.SetNext(nextEmptyOverflowIndex++);
+                    firstRecordInOverflow.WriteRecToFile(fm.GetOverflowFileName(), prevRecord.GetNext());
                 }
-                else if (firstRecordInOverflow.key == toBeInserted.key)
+                else if (firstRecordInOverflow.GetKey() == toBeInserted.GetKey())
                 {
                     throw new InvalidOperationException("Key of inserted record duplicated! Insert rejected!");
                 }
@@ -237,8 +237,8 @@ namespace ISFO.source
 
                     //overflowPage.Update(firstRecordInOverflow.key, toBeInserted);
 
-                    firstRecordInOverflow.next = nextEmptyOverflowIndex++;
-                    firstRecordInOverflow.WriteRecToFile(fm.GetOverflowFileName(), prevRecord.next);
+                    firstRecordInOverflow.SetNext(nextEmptyOverflowIndex++);
+                    firstRecordInOverflow.WriteRecToFile(fm.GetOverflowFileName(), prevRecord.GetNext());
 
                     //FileMenager.WriteToFile(fm.GetOverflowFileName(), overflowPage.GetRecords(), (overflowPage.nr - 1) * B);
 
@@ -287,21 +287,22 @@ namespace ISFO.source
 
         private void ValidRecord(Record record)
         {
-            if (record.key <= 0) {
+
+            if (record.GetKey() <= 0) {
                 throw new InvalidOperationException("Invalid key!");
             }
-            else if (record.data1 <= 0) {
+            else if (record.GetData1() <= 0) {
                 throw new InvalidOperationException("Invalid data1!");
             }
-            else if (record.data2 <= 0)
+            else if (record.GetData2() <= 0)
             {
                 throw new InvalidOperationException("Invalid data2!");
             }
-            else if (record.deleted == 1)
+            else if (record.GetDeleted() == 1)
             {
                 throw new InvalidOperationException("Cannot insert deleted record!");
             }
-            else if (record.next != -1)
+            else if (record.GetNext() != -1)
             {
                 throw new InvalidOperationException("Inserted record cannot point to another record!");
             }
@@ -329,7 +330,7 @@ namespace ISFO.source
                     else
                     {
                         Console.WriteLine(record.ToString());
-                        if(record.next != -1)
+                        if(record.GetNext() != -1)
                         {
                             // wef know that record points to next record
                             DisplayOverflowChain(record);
@@ -372,7 +373,7 @@ namespace ISFO.source
                 if (anchor.HasNext())
                 {
                     anchor = GetNextRecordFromOverflow(anchor);
-                    if (anchor.deleted == 0)
+                    if (anchor.GetDeleted() == 0)
                     {
                         chain.Add(anchor);
                     }
@@ -396,15 +397,15 @@ namespace ISFO.source
 
             foreach (var record in page.GetRecords())
             {
-                if (record.IsEmpty() && record.deleted == 0)
+                if (record.IsEmpty() && record.GetDeleted() == 0)
                 {
                     return null;
                 }
-                else if (record.key < keyOfRecToFind)
+                else if (record.GetKey() < keyOfRecToFind)
                 {
                     prevRecord = record;
                 }
-                else if (record.key == keyOfRecToFind)
+                else if (record.GetKey() == keyOfRecToFind)
                 {
                     return record;
                 }
@@ -423,7 +424,7 @@ namespace ISFO.source
             Record toFound = null;
             while (!isFound)
             {
-                int indexInOverflow = prevRecord.next;
+                int indexInOverflow = prevRecord.GetNext();
 
                 int overflowPageNr = GetOverflowPageNr(indexInOverflow);
                 int overflowPageNrSecondAttepmt = -1;
@@ -456,7 +457,7 @@ namespace ISFO.source
             Record toFound = null;
             while (!isFound)
             {
-                int indexInOverflow = prevRecord.next;
+                int indexInOverflow = prevRecord.GetNext();
                 
                 int overflowPageNr = GetOverflowPageNr(indexInOverflow);
                 int overflowPageNrSecondAttepmt = -1;
@@ -471,16 +472,16 @@ namespace ISFO.source
 
                 if (!toFound.IsEmpty())
                 {
-                    if (toFound.key == keyOfRecToFind)
+                    if (toFound.GetKey() == keyOfRecToFind)
                     {
                         isFound = true;
                     }
-                    else if (toFound.next != -1) 
+                    else if (toFound.GetNext() != -1) 
                     {
                         // we have to dive deeeeper..
 
                         // check if requested record is in the downoladed page
-                        overflowPageNrSecondAttepmt = GetOverflowPageNr(toFound.next);
+                        overflowPageNrSecondAttepmt = GetOverflowPageNr(toFound.GetNext());
                         prevRecord = toFound;                      
                     }
                     else throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
@@ -529,6 +530,19 @@ namespace ISFO.source
                 {
                     Console.Write(record.ToString());
                 }
+            }
+        }
+
+        public void DeleteRecord(int key)
+        {
+            Record toDelete = GetRecord(key);
+            if(toDelete == null)
+            {
+                throw new InvalidOperationException("Record to delete does not exist!");
+            }
+            else
+            {
+                toDelete.Delete();
             }
         }
 

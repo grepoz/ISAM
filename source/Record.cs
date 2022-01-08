@@ -41,10 +41,7 @@ namespace ISFO.source
 
         public int[] ToIntArr() => new int[] { key, data1, data2, deleted, next };
 
-        public int GetKey()
-        {
-            return key;
-        }
+        public int GetKey() => key;
         public void SetKey(int key)
         {
             if (key < 0)
@@ -52,11 +49,7 @@ namespace ISFO.source
             this.key = key;
         }
 
-        public int GetData1()
-        {
-            return data1;
-        }
-
+        public int GetData1() => data1;
         public void SetData1(int data1)
         {
             if (data1 < 0)
@@ -64,10 +57,7 @@ namespace ISFO.source
             this.data1 = data1;
         }
 
-        public int GetData2()
-        {
-            return data1;
-        }
+        public int GetData2() => data1;
 
         public void SetData2(int data2)
         {
@@ -76,11 +66,7 @@ namespace ISFO.source
             this.data2 = data2;
         }
 
-        public int GetNext()
-        {
-            return next;
-        }
-
+        public int GetNext() => next;
         public void SetNext(int next)
         {
             if (next < 0)
@@ -88,11 +74,7 @@ namespace ISFO.source
             this.next = next;
         }
 
-        public int GetDeleted()
-        {
-            return deleted;
-        }
-
+        public int GetDeleted() => deleted;
         public void SetDeleted(int deleted)
         {
             if (deleted != 0 && deleted != 1)
@@ -105,10 +87,7 @@ namespace ISFO.source
             return (key == 0 && data1 == 0 && data2 == 0 && deleted == 0 && next == -1);
         }
 
-        public bool HasNext()
-        {
-            return next != -1;
-        }
+        public bool HasNext() => next != -1;
 
         public void WriteRecToFile(string filePath, int indexInOverflow)
         {
@@ -134,6 +113,14 @@ namespace ISFO.source
         {
             deleted = 1;
         }
+
+        public void Clear()
+        {
+            key = data1 = data2 = deleted = 0;
+            next = -1;
+        }
+
+        public bool Exist() => deleted == 0;
 
     }
 }

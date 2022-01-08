@@ -12,7 +12,7 @@ namespace ISFO
         public int nr;
         public Page()
         {
-            records = InitArrayOfRecords(DBMS.recPerPage);
+            records = InitArrayOfRecords(DBMS.bf);
         }
 
         public static Record[] InitArrayOfRecords(int length)
@@ -57,10 +57,17 @@ namespace ISFO
 
         public void DisplayPageContent()
         {
+            Array.ForEach(records, record => Console.WriteLine(record.ToString()));
+        }
+
+        public int GetLength()
+        {
+            int length = 0;
             foreach (var record in records)
             {
-                Console.WriteLine(record.ToString());
+                if (!record.IsEmpty()) length++;
             }
+            return length;
         }
 
         internal void Update(int key, Record toBeUpdated)
@@ -81,5 +88,11 @@ namespace ISFO
         {
             return Array.FindIndex(records, record => (record.GetKey() == key));
         }
+
+        public void Clear()
+        {
+            Array.ForEach(records, record => record.Clear());
+        }
+
     }
 }

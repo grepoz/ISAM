@@ -14,10 +14,15 @@ namespace ISFO
     {
         private const string ext = ".bin";
         private static readonly string dirPath = Directory.GetCurrentDirectory().ToString() + @"\files";
-        private static readonly string indexFile = dirPath + @"\" + "index" + ext;
-        private static readonly string primaryFile = dirPath + @"\" + "primary" + ext;
-        private static readonly string overflowFile = dirPath + @"\" + "overflow" + ext;
-        private static readonly string testFile = dirPath + @"\" + "test" + ext;
+        private static readonly string indexFile = CreateFilePath("index");
+        private static readonly string primaryFile = CreateFilePath("primary");
+        private static readonly string overflowFile = CreateFilePath("overflow");
+        private static readonly string testFile = dirPath + @"\" + "test.txt";
+        const string attr = "_new";
+        private static readonly string indexNewFile = CreateFilePath("index", attr);
+        private static readonly string primaryNewFile = CreateFilePath("primary", attr);
+        private static readonly string overflowNewFile = CreateFilePath("overflow", attr);
+
 
         public FileMenager()
         {
@@ -27,13 +32,13 @@ namespace ISFO
             GenerateAreaFile(overflowFile, DBMS.defaultNrOfPages);
         }
 
-        public void GenerateAreaFile(string filePath, int nrOfPages)
+        public static void GenerateAreaFile(string filePath, int nrOfPages)
         {
             CreateFile(filePath);
 
-            Record[] records = Page.InitArrayOfRecords(DBMS.recPerPage);
+            Record[] records = Page.InitArrayOfRecords(DBMS.bf);
 
-            // oblicz recPerPage dynamicznie
+            // oblicz bf dynamicznie
             for (int i = 0; i < nrOfPages; i++)
             {
                 WriteToFile(filePath, records, i * DBMS.B);
@@ -60,7 +65,7 @@ namespace ISFO
             Console.WriteLine("\nInput several records in format: key 'space' nr 'space' nr 'enter'.");
             Console.WriteLine("To finish type 'q'");
             string userInput;
-            Record[] userRecords = Page.InitArrayOfRecords(DBMS.recPerPage);
+            Record[] userRecords = Page.InitArrayOfRecords(DBMS.bf);
 
             while (true)
             {
@@ -80,30 +85,23 @@ namespace ISFO
         }
         */
 
-        public void GenerateIndexFile(string filePath, int nrOfPages, int[] startingKeysOnPages = null)
+        public static void GenerateIndexFile(string filePath, int nrOfPages, bool isEmpty = false)
         {
             CreateFile(filePath);
 
-            List<(int, int)> fileContent = new List<(int, int)>();
-
-            if(startingKeysOnPages == null)
+            if(!isEmpty)
             {
                 // default distribution
+
+                List<(int, int)> fileContent = new List<(int, int)>();
                 for (int i = 0; i < nrOfPages; i++)
                 {
                     fileContent.Add((i * 10 + 1, i + 1));
                 }
-            }
-            else
-            {
-                // distribution after reorganisation
-                for (int i = 0; i < nrOfPages; i++)
-                {
-                    fileContent.Add((i * 10 + 1, i + 1));
-                }
+
+                WriteToIndexFile(filePath, fileContent);
             }
 
-            WriteToIndexFile(filePath, fileContent);
         }
         public static void CreateFile(string filePath)
         {
@@ -201,86 +199,23 @@ namespace ISFO
                 throw new InvalidOperationException("File does not!");
             }
         }
-        
-        /*public void DisplayFileContent(string filePath)
+        public string GetIndexFileName() => indexFile;
+        public string GetPrimaryFileName() => primaryFile;
+        public string GetOverflowFileName() => overflowFile;
+
+        public string GetIndexNewFileName() => indexNewFile;
+        public string GetPrimaryNewFileName() => primaryNewFile;
+        public string GetOverflowNewFileName() => overflowNewFile;
+
+        public static string GetExt() => ext;
+        public static string GetDirPath() => dirPath;
+        public static string GetTestFileName() => testFile;
+
+        public static string CreateFilePath(string fileName, string attr = "")
         {
-            try
-            {
-                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                {
-                    using (BinaryReader br = new BinaryReader(fs, new ASCIIEncoding()))
-                    {
-                        int cnt = 0, pageNr = 0;
-
-                        int nrOfPages;
-                        if (filePath == primaryFile) nrOfPages = DBMS.nrOfPageInPrimary;
-                        else nrOfPages = DBMS.nrOfPageInOverflow;
-
-                        string fileName = Path.GetFileName(filePath);
-                        Console.WriteLine("###### {0} ######", fileName);
-
-                        while (br.BaseStream.Position != br.BaseStream.Length)
-                        { 
-                            if (cnt % DBMS.nrOfIntsInRecord == 0)
-                            {
-                                Console.WriteLine();
-                                // error defaultNrOfPages is changing
-
-                                // display 
-                                if (cnt % (DBMS.nrOfIntsInRecord * DBMS.recPerPage) == 0) {
-                                    cnt = 0;
-                                    Console.WriteLine("--------- Page " + (pageNr++ + 1) + " ---------");
-
-                                    if (pageNr % nrOfPages == 0) pageNr = 0;
-                                }                             
-                            }
-
-                            Console.Write(BitConverter.ToInt32(br.ReadBytes(4), 0) + " ");
-                            cnt++;
-                        }
-                    }
-                }
-                Console.WriteLine("\n==========================\n");
-            }
-            catch (Exception)
-            {
-                throw new InvalidOperationException("File is empty or does not exist!");
-            }
-
+            return GetDirPath() + @"\" + fileName + attr + GetExt();
         }
 
-        */
-
-
-        public string GetIndexFileName()
-        {
-            return indexFile;
-        }
-
-        public string GetPrimaryFileName()
-        {
-            return primaryFile;
-        }
-        
-        public string GetOverflowFileName()
-        {
-            return overflowFile;
-        }
-
-        public string GetExt()
-        {
-            return ext;
-        }
-
-        public string GetDirPath()
-        {
-            return dirPath;
-        }
-
-        public static string GetTestFileName()
-        {
-            return testFile;
-        }
     }
 
 

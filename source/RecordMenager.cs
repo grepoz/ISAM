@@ -43,7 +43,7 @@ namespace ISFO
             //int nrOfInts = chunk.Length / bytesInInt;
             //int nrOfRecords = nrOfInts / DBMS.nrOfIntsInRecord; // instead of 'DBMS.recPerPage' becouse we could read less than whole site
 
-            for (int i = 0; i < DBMS.recPerPage; i++)
+            for (int i = 0; i < DBMS.bf; i++)
             {
                 int k = i * DBMS.nrOfIntsInRecord;
                 page.GetRecords()[i] = new Record(intsArr[k+ 0], intsArr[k + 1], intsArr[k + 2], intsArr[k + 3], intsArr[k + 4]);

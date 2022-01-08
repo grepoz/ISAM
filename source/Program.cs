@@ -32,6 +32,9 @@ namespace ISFO
 
             Console.WriteLine($"Found: {dbms.ReadRecord(key: 7)}");
 
+            Console.WriteLine($"nr of primary records: {DBMS.nrOfPrimaryRecords}");
+            Console.WriteLine($"nr of overflow records: {DBMS.nrOfOverflowRecords}");
+
             dbms.DisplayDBAscending();
 
             //List<string> commands = fm.ReadTestFile();

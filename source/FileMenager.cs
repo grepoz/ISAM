@@ -22,19 +22,19 @@ namespace ISFO
         public FileMenager()
         {
             CreateDirectory();
-            GenerateIndexFile();
-            GenerateAreaFile(primaryFile);
-            GenerateAreaFile(overflowFile);
+            GenerateIndexFile(indexFile, DBMS.defaultNrOfPages);
+            GenerateAreaFile(primaryFile, DBMS.defaultNrOfPages);
+            GenerateAreaFile(overflowFile, DBMS.defaultNrOfPages);
         }
 
-        private void GenerateAreaFile(string filePath)
+        public void GenerateAreaFile(string filePath, int nrOfPages)
         {
             CreateFile(filePath);
 
             Record[] records = Page.InitArrayOfRecords(DBMS.recPerPage);
 
             // oblicz recPerPage dynamicznie
-            for (int i = 0; i < DBMS.defaultNrOfPages; i++)
+            for (int i = 0; i < nrOfPages; i++)
             {
                 WriteToFile(filePath, records, i * DBMS.B);
             }
@@ -80,18 +80,30 @@ namespace ISFO
         }
         */
 
-        private void GenerateIndexFile()
+        public void GenerateIndexFile(string filePath, int nrOfPages, int[] startingKeysOnPages = null)
         {
-            CreateFile(indexFile);
+            CreateFile(filePath);
 
             List<(int, int)> fileContent = new List<(int, int)>();
 
-            for (int i = 0; i < DBMS.defaultNrOfPages; i++)
+            if(startingKeysOnPages == null)
             {
-                fileContent.Add((i * 10 + 1, i + 1));
+                // default distribution
+                for (int i = 0; i < nrOfPages; i++)
+                {
+                    fileContent.Add((i * 10 + 1, i + 1));
+                }
+            }
+            else
+            {
+                // distribution after reorganisation
+                for (int i = 0; i < nrOfPages; i++)
+                {
+                    fileContent.Add((i * 10 + 1, i + 1));
+                }
             }
 
-            WriteToIndexFile(indexFile, fileContent);
+            WriteToIndexFile(filePath, fileContent);
         }
         public static void CreateFile(string filePath)
         {
@@ -254,7 +266,17 @@ namespace ISFO
         {
             return overflowFile;
         }
-        
+
+        public string GetExt()
+        {
+            return ext;
+        }
+
+        public string GetDirPath()
+        {
+            return dirPath;
+        }
+
         public static string GetTestFileName()
         {
             return testFile;

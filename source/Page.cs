@@ -43,6 +43,11 @@ namespace ISFO
 
         public Record[] GetRecords()
         {
+            var recordsInUse = new Record[MyGetLength()];
+            foreach (var record in records)
+            {
+                if (record.IsEmpty()) return false;
+            }
             return records;
         }
 
@@ -60,7 +65,7 @@ namespace ISFO
             Array.ForEach(records, record => Console.WriteLine(record.ToString()));
         }
 
-        public int GetLength()
+        public int MyGetLength()
         {
             int length = 0;
             foreach (var record in records)
@@ -94,5 +99,6 @@ namespace ISFO
             Array.ForEach(records, record => record.Clear());
         }
 
+        public bool IsEmpty() => MyGetLength() == 0;
     }
 }

@@ -263,7 +263,7 @@ namespace ISFO.source
         public void Reorganise()
         {
             GenerateFilesToReorganisation();
-            InsertSpecialFirstRecord(fm.GetIndexNewFileName());
+            InsertSpecialFirstRecord(fm.GetPrimaryNewFileName());
 
 
             bool isProcessed = false;
@@ -274,12 +274,15 @@ namespace ISFO.source
 
             while (!isProcessed)
             {
-                Page oldPrimaryPage = ReadPage(fm.GetPrimaryFileName(), positionOldPrimaryPage);
-                Page newPrimaryPage = new Page(); //ReadPage(fm.GetPrimaryNewFileName(), positionNewPrimaryPage);
+                Page oldPrimaryPage = ReadPage(fm.GetPrimaryFileName(), positionOldPrimaryPage * B);
+                Page newPrimaryPage = ReadPage(fm.GetPrimaryNewFileName(), positionNewPrimaryPage * B);
+
                 //Page newIndexPage = ReadPage(fm.GetIndexNewFileName(), positionNewIndexPage);
                 Page helperPage = new Page();
 
                 var newIndexPage = new List<(int key, int pageNr)>();
+
+                if (oldPrimaryPage.IsEmpty()) isProcessed = true;
 
                 foreach (var oldRecord in oldPrimaryPage.GetRecords())
                 {
@@ -287,11 +290,11 @@ namespace ISFO.source
                     foreach (var item in GetOverflowChain(oldRecord.GetKey()))
                     {
 
-                        if (oldRecord.Exist())
+                        if (item.Exist())
                         {
-                            if (newPrimaryPage.GetLength() >= (int)Math.Ceiling(alpha * bf))
-                            {
-                                newIndexPage.Add((key: oldRecord.GetKey(), pageNr: pageNrInIndex++));
+                            if (newPrimaryPage.MyGetLength() >= (int)Math.Ceiling(alpha * bf))
+                            {   // wczesniej dodaj pierwszy rekord indeks:1, pageNr:1
+                                newIndexPage.Add((key: item.GetKey(), pageNr: pageNrInIndex++));
                                 if (newIndexPage.Count() == bi)
                                 {
                                     FileMenager.WriteToIndexFile(fm.GetIndexNewFileName(), newIndexPage, positionNewIndexPage * B);
@@ -299,13 +302,16 @@ namespace ISFO.source
                                 }
 
                                 // we save fullfilled page 
-                                FileMenager.WriteToFile(fm.GetPrimaryNewFileName(), newPrimaryPage.GetRecords(), positionNewPrimaryPage);
-                                newPrimaryPage.Clear();
+                                FileMenager.WriteToFile(fm.GetPrimaryNewFileName(), newPrimaryPage.GetRecords(), positionNewPrimaryPage * B);
+                                positionNewPrimaryPage++;
+
+                                newPrimaryPage = ReadPage(fm.GetPrimaryNewFileName(), positionNewPrimaryPage * B);
                             }
-                            newPrimaryPage.ReplaceFirstEmpty(oldRecord);
+                            newPrimaryPage.ReplaceFirstEmpty(item);
                         }
                     }
                 }
+                positionOldPrimaryPage++;
             }
 
 
@@ -319,7 +325,7 @@ namespace ISFO.source
             nrOfPagesInIndex = (int)Math.Ceiling((double)(nrOfPagesInPrimary / bi));
             nrOfPagesInOverflow = (int)Math.Ceiling(nrOfPagesInPrimary * sizeCoeff);
 
-            FileMenager.GenerateIndexFile(fm.GetIndexNewFileName(), nrOfPagesInIndex);
+            FileMenager.GenerateIndexFile(fm.GetIndexNewFileName() /*, nrOfPagesInIndex*/);
             FileMenager.GenerateAreaFile(fm.GetPrimaryNewFileName(), nrOfPagesInPrimary);
             FileMenager.GenerateAreaFile(fm.GetOverflowNewFileName(), nrOfPagesInOverflow);
         }
@@ -353,7 +359,8 @@ namespace ISFO.source
                 for (int j = 0; j < indexPage.GetLength(0); j++)
                 {
                     int keyFromIndex = indexPage[j, 0];
-                    if (key < keyFromIndex) prevKey = key;
+                    if(key == 0) return indexPage[0, 1];
+                    else if (key < keyFromIndex) prevKey = key;
                     else if (key > keyFromIndex) return indexPage[prevKey, 1];
                     else return indexPage[key - 1, 1];
                 }

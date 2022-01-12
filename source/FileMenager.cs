@@ -85,11 +85,11 @@ namespace ISFO
         }
         */
 
-        public static void GenerateIndexFile(string filePath, int nrOfPages, bool isEmpty = false)
+        public static void GenerateIndexFile(string filePath, int nrOfPages = 0)
         {
             CreateFile(filePath);
 
-            if(!isEmpty)
+            if(nrOfPages > 0)
             {
                 // default distribution
 

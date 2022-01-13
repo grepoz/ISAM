@@ -18,18 +18,18 @@ namespace ISFO.source
         public const int defaultNrOfPages = 3;
         public const int nrOfIntsInRecord = R / 4;
         public const double delta = 0.2;  // fullfillment of overflow  
+        public const double sizeCoeff = 0.2;
 
 
         // change after reorganisation
         public static int nrOfPagesInPrimary = defaultNrOfPages;
-        public static int nrOfPagesInOverflow = defaultNrOfPages;// (int)Math.Ceiling(3 * sizeCoeff);
+        public static int nrOfPagesInOverflow =  (int)Math.Ceiling(defaultNrOfPages * sizeCoeff);
         public static int nrOfPagesInIndex = defaultNrOfPages;
         public static int V = 0;
         public static int N = 0;
 
         public static int bf = (int)Math.Floor((double)(B / R));    // attention! - Record includes 'P'
         public static int bi = (int)Math.Floor((double)(B / (K + P)));  // = 8 
-        public static double sizeCoeff = 0.2d;
 
 
         private int nextEmptyOverflowIndex;
@@ -131,8 +131,7 @@ namespace ISFO.source
             foreach (var record in page.GetRecords())
             {
                 if (record.IsEmpty())
-                {
-                    
+                {                    
                     page.ReplaceFirstEmpty(toBeInserted);
                     FileMenager.WriteToFile(fm.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
                     N++;
@@ -145,18 +144,11 @@ namespace ISFO.source
                 else if (record.GetKey() > toBeInserted.GetKey())
                 {                   
                     InsertToOverflowFile(toBeInserted, prevRecord, page);
-
-                    //prevRecord = record;
-                    //prevRecord.next = nextEmptyOverflowIndex++;
-                    //FileMenager.WriteToFile(fm.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
                     return;
                 }
                 else // ==
                 {
                     throw new InvalidOperationException("Cannot insert record! Key duplicated!");
-                    /*page.Update(toBeInserted);
-                    FileMenager.WriteToFile(fm.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
-                    return;*/
                 }
 
             }
@@ -262,6 +254,13 @@ namespace ISFO.source
 
         private void Update(int keyOfRecToUpdate, Record freshRecord)
         {
+            int pageNr = GetPageNr(keyOfRecToUpdate);
+
+            Page page = ReadPage(fm.GetPrimaryFileName(), (pageNr - 1) * B);
+
+            // GetPage ma zwracac strone z rekordem (bez wzgledu czy z overflow czy z primary!!!!!!
+            Page page = GetPage(keyOfRecToUpdate);
+
             Record toBeUpdated = GetRecord(keyOfRecToUpdate);
             if (toBeUpdated != null)
             {
@@ -376,7 +375,7 @@ namespace ISFO.source
 
         private bool IsReorganisation()
         {
-            return V / (nrOfPagesInOverflow * bf) >= delta;           
+            return V / N >= delta;           
         }
 
         private int GetOverflowRecIndexInPage(int globalIndex)
@@ -566,9 +565,9 @@ namespace ISFO.source
                 int indexInOverflow = prevRecord.GetNext();
 
                 int overflowPageNr = GetOverflowPageNr(indexInOverflow);
-                int overflowPageNrSecondAttepmt = -1;
+                int overflowPageNrSecondAttempt = -1;
                 Page overflowPage = null;
-                if (overflowPageNr != overflowPageNrSecondAttepmt)
+                if (overflowPageNr != overflowPageNrSecondAttempt)
                 {
                     overflowPage = ReadPage(fm.GetOverflowFileName(), (overflowPageNr - 1) * B);
                 }
@@ -594,14 +593,15 @@ namespace ISFO.source
             if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
             bool isFound = false;
             Record toFound = null;
+            int overflowPageNrSecondAttempt = -1;
             while (!isFound)
             {
                 int indexInOverflow = prevRecord.GetNext();
                 
                 int overflowPageNr = GetOverflowPageNr(indexInOverflow);
-                int overflowPageNrSecondAttepmt = -1;
+                
                 Page overflowPage = null;
-                if (overflowPageNr != overflowPageNrSecondAttepmt)
+                if (overflowPageNr != overflowPageNrSecondAttempt)
                 {
                     overflowPage = ReadPage(fm.GetOverflowFileName(), (overflowPageNr - 1) * B);
                 }
@@ -620,7 +620,7 @@ namespace ISFO.source
                         // we have to dive deeeeper..
 
                         // check if requested record is in the downoladed page
-                        overflowPageNrSecondAttepmt = GetOverflowPageNr(toFound.GetNext());
+                        overflowPageNrSecondAttempt = GetOverflowPageNr(toFound.GetNext());
                         prevRecord = toFound;                      
                     }
                     else throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
@@ -699,8 +699,8 @@ namespace ISFO.source
             }
             else if (cmd.Contains("D"))
             {
-                Record toBeDeleted = new Record(recData[0]);
-                Delete(toBeDeleted);
+                //Record toBeDeleted = GetRecord(recData[0]);
+                //Delete(toBeDeleted);
             }
             else if (cmd == "R")
             {

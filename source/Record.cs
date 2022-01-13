@@ -69,7 +69,7 @@ namespace ISFO.source
         public int GetNext() => next;
         public void SetNext(int next)
         {
-            if (next < 0)
+            if (next < -1)
                 throw new InvalidOperationException("Wrong values!");
             this.next = next;
         }

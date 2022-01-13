@@ -43,11 +43,6 @@ namespace ISFO
 
         public Record[] GetRecords()
         {
-            var recordsInUse = new Record[MyGetLength()];
-            foreach (var record in records)
-            {
-                if (record.IsEmpty()) return false;
-            }
             return records;
         }
 

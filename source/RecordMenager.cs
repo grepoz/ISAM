@@ -46,7 +46,7 @@ namespace ISFO
             for (int i = 0; i < DBMS.bf; i++)
             {
                 int k = i * DBMS.nrOfIntsInRecord;
-                page.GetRecords()[i] = new Record(intsArr[k+ 0], intsArr[k + 1], intsArr[k + 2], intsArr[k + 3], intsArr[k + 4]);
+                page.ReplaceFirstEmpty(new Record(intsArr[k+ 0], intsArr[k + 1], intsArr[k + 2], intsArr[k + 3], intsArr[k + 4]));
             }
 
             return page;

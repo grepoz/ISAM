@@ -39,6 +39,10 @@ namespace ISFO
 
             dbms.Reorganise();
 
+            dbms.DisplayFileContent(fm.GetIndexFileName());
+            dbms.DisplayFileContent(fm.GetPrimaryFileName());
+            dbms.DisplayFileContent(fm.GetOverflowFileName());
+
             //List<string> commands = fm.ReadTestFile();
 
             Console.ReadKey();

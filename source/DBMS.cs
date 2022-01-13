@@ -22,7 +22,7 @@ namespace ISFO.source
 
         // change after reorganisation
         public static int nrOfPagesInPrimary = defaultNrOfPages;
-        public static int nrOfPagesInOverflow = defaultNrOfPages;
+        public static int nrOfPagesInOverflow = (int)Math.Ceiling(defaultNrOfPages* sizeCoeff);
         public static int nrOfPagesInIndex = defaultNrOfPages;
         public static int V = 0;
         public static int N = 0;
@@ -262,31 +262,25 @@ namespace ISFO.source
 
         public void Reorganise()
         {
+            int nrOfPagesInOldPrimary = nrOfPagesInPrimary;
             GenerateFilesToReorganisation();
             InsertSpecialFirstRecord(fm.GetPrimaryNewFileName());
 
-
-            bool isProcessed = false;
-            int positionOldPrimaryPage = 0;
-            int positionNewPrimaryPage = 0;
-            int positionNewIndexPage = 0;
+            int pageNrInOldPrimary = 0;
+            int pageNrInNewPrimary = 0;
+            int pageNrInNewIndex = 0;
             int pageNrInIndex = 1;
 
-            while (!isProcessed)
+            while (pageNrInOldPrimary< nrOfPagesInOldPrimary && pageNrInNewPrimary < nrOfPagesInPrimary)
             {
-                Page oldPrimaryPage = ReadPage(fm.GetPrimaryFileName(), positionOldPrimaryPage * B);
-                Page newPrimaryPage = ReadPage(fm.GetPrimaryNewFileName(), positionNewPrimaryPage * B);
-
-                //Page newIndexPage = ReadPage(fm.GetIndexNewFileName(), positionNewIndexPage);
-                Page helperPage = new Page();
-
+                Page oldPrimaryPage = ReadPage(fm.GetPrimaryFileName(), pageNrInOldPrimary * B);
+                Page newPrimaryPage = ReadPage(fm.GetPrimaryNewFileName(), pageNrInNewPrimary * B);
                 var newIndexPage = new List<(int key, int pageNr)>();
-
-                if (oldPrimaryPage.IsEmpty()) isProcessed = true;
 
                 foreach (var oldRecord in oldPrimaryPage.GetRecords())
                 {
                     // tu sie loopuje!!!
+                    if (oldRecord.IsEmpty()) break;
                     foreach (var item in GetOverflowChain(oldRecord.GetKey()))
                     {
 
@@ -297,26 +291,43 @@ namespace ISFO.source
                                 newIndexPage.Add((key: item.GetKey(), pageNr: pageNrInIndex++));
                                 if (newIndexPage.Count() == bi)
                                 {
-                                    FileMenager.WriteToIndexFile(fm.GetIndexNewFileName(), newIndexPage, positionNewIndexPage * B);
+                                    FileMenager.WriteToIndexFile(fm.GetIndexNewFileName(), newIndexPage, pageNrInNewIndex * B);
                                     newIndexPage.Clear();
                                 }
 
                                 // we save fullfilled page 
-                                FileMenager.WriteToFile(fm.GetPrimaryNewFileName(), newPrimaryPage.GetRecords(), positionNewPrimaryPage * B);
-                                positionNewPrimaryPage++;
-
-                                newPrimaryPage = ReadPage(fm.GetPrimaryNewFileName(), positionNewPrimaryPage * B);
+                                FileMenager.WriteToFile(fm.GetPrimaryNewFileName(), newPrimaryPage.GetRecords(), pageNrInNewPrimary * B);
+                                pageNrInNewPrimary++;
+                                newPrimaryPage = ReadPage(fm.GetPrimaryNewFileName(), pageNrInNewPrimary * B);
                             }
+                            item.SetNext(-1);
                             newPrimaryPage.ReplaceFirstEmpty(item);
                         }
                     }
                 }
-                positionOldPrimaryPage++;
+                if (newPrimaryPage != null)
+                {
+                    if (newPrimaryPage.MyGetLength() >= (int)Math.Ceiling(alpha * bf))
+                    {
+                        FileMenager.WriteToFile(fm.GetPrimaryNewFileName(), newPrimaryPage.GetRecords(), pageNrInNewPrimary * B);
+                        pageNrInNewPrimary++;
+
+                    }
+                }
+
+                pageNrInOldPrimary++;
             }
 
+            DeleteOldFiles();
+            RenameFilesAfterReorganisation();
 
-            //RenameFilesAfterReorganisation();
+        }
 
+        private void DeleteOldFiles()
+        {
+            File.Delete(fm.GetIndexFileName());
+            File.Delete(fm.GetPrimaryFileName());
+            File.Delete(fm.GetOverflowFileName());
         }
 
         public void GenerateFilesToReorganisation()
@@ -332,7 +343,12 @@ namespace ISFO.source
 
         private void RenameFilesAfterReorganisation()
         {
-            throw new NotImplementedException();
+
+            File.Move(fm.GetIndexNewFileName(), fm.GetIndexFileName());
+            File.Move(fm.GetPrimaryNewFileName(), fm.GetPrimaryFileName());
+            File.Move(fm.GetOverflowNewFileName(), fm.GetOverflowFileName());
+
+
         }
 
         private bool IsReorganisation()
@@ -447,7 +463,7 @@ namespace ISFO.source
             for (int position = 0; position < GetNrOfPagesOfFile(filePath); position++)
             {
                 Console.WriteLine($"------ Page: {position + 1} ------");
-                Page page = DBMS.ReadPage(filePath, position * DBMS.B);
+                Page page = ReadPage(filePath, position * B);
                 foreach (var record in page.GetRecords())
                 {
                     Console.Write(record.ToString());
@@ -494,11 +510,11 @@ namespace ISFO.source
             Page page = ReadPage(fm.GetPrimaryFileName(), (pageNr - 1) * B);
 
             Record prevRecord = null;
-
+            // tu jest problem? 
             foreach (var record in page.GetRecords())
             {
                 if (record.IsEmpty() && record.GetDeleted() == 0)
-                {
+                {   // niepotrzebne?
                     return null;
                 }
                 else if (record.GetKey() < keyOfRecToFind)
@@ -515,7 +531,7 @@ namespace ISFO.source
                 }
 
             }
-            throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
+            return null;
         }
         public Record GetNextRecordFromOverflow(Record prevRecord)
         {

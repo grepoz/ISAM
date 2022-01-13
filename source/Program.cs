@@ -20,15 +20,18 @@ namespace ISFO
             {
                 testRecords.Add(new Record(nrOfTestRecs - i , (i + 1) * 2, (i + 1) * 4));
             }
-            int cnt = 0;
-            foreach (var record in testRecords)
-            {
-                dbms.InsertRecord(record);
-                Console.WriteLine($"\nInsert {++cnt}\n" );
-                dbms.DisplayFileContent(fm.GetPrimaryFileName());
-                dbms.DisplayFileContent(fm.GetOverflowFileName());
+            //int cnt = 0;
+            //foreach (var record in testRecords)
+            //{
+            //    dbms.InsertRecord(record);
+            //    Console.WriteLine($"\nInsert {++cnt}\n" );
+            //    dbms.DisplayFileContent(fm.GetPrimaryFileName());
+            //    dbms.DisplayFileContent(fm.GetOverflowFileName());
 
-            }
+            //}
+            List<string> cmds = fm.ReadTestFile();
+
+            dbms.CmdHandler(cmds);
 
             Console.WriteLine($"Found: {dbms.ReadRecord(key: 7)}");
 

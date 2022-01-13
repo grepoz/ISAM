@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
-using static ISFO.MyFile;
 
 namespace ISFO
 {
@@ -186,10 +185,9 @@ namespace ISFO
             {
                 foreach (string record in System.IO.File.ReadLines(filePath))
                 {
-                    if (RecordMenager.IsTestRecordFormatValid(record))
-                        commands.Add(record);
-                    else
-                        throw new InvalidOperationException("Invalid record format!");
+                    //if (RecordMenager.IsTestRecordFormatValid(record))
+                    commands.Add(record);
+                    //else throw new InvalidOperationException("Invalid record format!");
                 }
 
                 return commands;

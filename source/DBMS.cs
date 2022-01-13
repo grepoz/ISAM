@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ISFO.source
 {
     class DBMS
     {
-
         public const int B = 80;  // disk page capacity - nr of bytes readed at once - always must be multiple of 'R'
         public const int R = 20;   // size of record - 5* int 
         public const int K = 4;   // size of key - int 
@@ -17,19 +17,19 @@ namespace ISFO.source
         public const double alpha = 0.5;   // page utlilization factor in the main area just after reorganization, α < 1
         public const int defaultNrOfPages = 3;
         public const int nrOfIntsInRecord = R / 4;
-        public const double delta = 0.8;  // fullfillment of overflow  
+        public const double delta = 0.2;  // fullfillment of overflow  
 
 
         // change after reorganisation
         public static int nrOfPagesInPrimary = defaultNrOfPages;
-        public static int nrOfPagesInOverflow = (int)Math.Ceiling(defaultNrOfPages* sizeCoeff);
+        public static int nrOfPagesInOverflow = defaultNrOfPages;// (int)Math.Ceiling(3 * sizeCoeff);
         public static int nrOfPagesInIndex = defaultNrOfPages;
         public static int V = 0;
         public static int N = 0;
 
         public static int bf = (int)Math.Floor((double)(B / R));    // attention! - Record includes 'P'
         public static int bi = (int)Math.Floor((double)(B / (K + P)));  // = 8 
-        public static double sizeCoeff = 0.2f;
+        public static double sizeCoeff = 0.2d;
 
 
         private int nextEmptyOverflowIndex;
@@ -258,6 +258,29 @@ namespace ISFO.source
             }
 
             if (IsReorganisation()) Reorganise();
+        }
+
+        private void Update(int keyOfRecToUpdate, Record freshRecord)
+        {
+            Record toBeUpdated = GetRecord(keyOfRecToUpdate);
+            if (toBeUpdated != null)
+            {
+                toBeUpdated.Update(freshRecord);
+                if (keyOfRecToUpdate != freshRecord.GetKey())
+                {
+                    Reorganise();
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Record to update data doesn't exist!");
+            }
+
+        }
+
+        private void Delete(Record toBeDeleted)
+        {
+            toBeDeleted.Delete();
         }
 
         public void Reorganise()
@@ -649,5 +672,46 @@ namespace ISFO.source
             }
         }
 
+        public void CmdHandler(List<string> cmds)
+        {
+
+            foreach (var cmd in cmds)
+            {
+                CmdInterpreter(cmd);
+            }
+        }
+
+        public void CmdInterpreter(string cmd)
+        {
+            // we assume that input is correct
+            List<int> recData = RetriveIntsFromString(cmd);
+
+            if (cmd.Contains("I"))
+            {
+                Record record = new Record(recData[0], recData[1], recData[2]);
+                InsertRecord(record);
+            }
+            else if (cmd.Contains("U"))
+            {
+                int keyOfRecToUpdate = recData[0];
+                Record freshRecord = new Record(recData[1], recData[2], recData[3]);
+                Update(keyOfRecToUpdate, freshRecord);
+            }
+            else if (cmd.Contains("D"))
+            {
+                Record toBeDeleted = new Record(recData[0]);
+                Delete(toBeDeleted);
+            }
+            else if (cmd == "R")
+            {
+                Reorganise();
+            }
+        }
+
+        private List<int> RetriveIntsFromString(string sNumbers)
+        {
+            sNumbers = sNumbers.Remove(0, 2);   // deleting letter & space (ex.: "I ")
+            return sNumbers.Split(' ').Select(Int32.Parse).ToList();
+        }
     }
 }

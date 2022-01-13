@@ -17,7 +17,7 @@ namespace ISFO
         
         public static bool IsTestRecordFormatValid(string testRecord)
         {
-            Regex rx = new Regex("^(INS|AKT|DEL) ([0-9]+) ([0-9]+) ([0-9]+)$");
+            Regex rx = new Regex("^(I|A|D) ([0-9]+) ([0-9]+) ([0-9]+)$");
             MatchCollection matches = rx.Matches(testRecord);
             return matches.Count > 0;
         }

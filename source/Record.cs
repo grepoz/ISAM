@@ -99,9 +99,6 @@ namespace ISFO.source
             key = freshRecord.key;
             data1 = freshRecord.data1;
             data2 = freshRecord.data2;
-            deleted = freshRecord.deleted;
-            next = freshRecord.next;
-
         }
 
         public void Copy(Record toCopy)

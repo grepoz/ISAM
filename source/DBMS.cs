@@ -29,6 +29,8 @@ namespace ISFO.source
         public static int V = 0;
         public static int N = 0;
 
+        public static int nrOfOperations = 0;
+
         private int nextEmptyOverflowIndex;
         private FileMenager fm;
 
@@ -38,6 +40,7 @@ namespace ISFO.source
             nextEmptyOverflowIndex = 0;
 
             InsertSpecialFirstRecord(fm.GetPrimaryFileName());
+            N++;
         }
 
         private void InsertSpecialFirstRecord(string filePath)
@@ -46,7 +49,7 @@ namespace ISFO.source
             {
                 Record toBeInserted = new Record(0, 0, 0, 1, -1);
                 FileMenager.WriteToFile(filePath, new[] { toBeInserted }, 0);
-                N++;
+
             }
             else
             {
@@ -69,8 +72,9 @@ namespace ISFO.source
                             Page page = RecordMenager.BytesToPage(chunk);
                             page.SetPageNr(position / B + 1);
                             page.SetPageFilePath(filePath);
-                            return page;
 
+                            nrOfOperations++;
+                            return page;
                         }
                         else
                             return null;
@@ -244,7 +248,6 @@ namespace ISFO.source
 
             if (IsReorganisation()) Reorganise();
         }
-
         private void Update(int keyOfRecToUpdate, Record freshRecord)
         {
             Page page = GetPage(keyOfRecToUpdate);
@@ -264,7 +267,6 @@ namespace ISFO.source
                 Console.WriteLine("Record to update doesn't exist!");
             }
         }
-
         private Page GetPage(int keyOfRecToFind)
         {
             // returns null if key was not found
@@ -299,7 +301,6 @@ namespace ISFO.source
             }
             return null;
         }
-
         private Page GetPageFromOverflow(Record prevRecord, int keyOfRecToFind)
         {
             if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
@@ -351,10 +352,18 @@ namespace ISFO.source
             return overflowPage;
 
         }
-
-        private void Delete(Record toBeDeleted)
+        private void Delete(int keyOfRecToBeDeleted)
         {
-            toBeDeleted.Delete();
+            Page page = GetPage(keyOfRecToBeDeleted);
+            if(page != null)
+            {
+                page.Get(keyOfRecToBeDeleted).Delete();
+                FileMenager.WriteToFile(page.pageFilePath, page.GetRecords(), (page.nr - 1) * B);
+            }
+            else
+            {
+                Console.WriteLine("Record to delete doesn't exist!");
+            }
         }
         public void Reorganise()
         {
@@ -433,8 +442,10 @@ namespace ISFO.source
             // menage files and set counters
             DeleteOldFiles();
             RenameFilesAfterReorganisation();
-            V = 0;
+
             N += V;
+            V = 0;
+            
             nextEmptyOverflowIndex = 0;
         }
         private void DeleteOldFiles()
@@ -445,7 +456,8 @@ namespace ISFO.source
         }
         public void GenerateFilesToReorganisation()
         {
-            nrOfPagesInPrimary = (int)Math.Ceiling((N + V) / (double)(bf * alpha));
+            nrOfPagesInPrimary = (int)Math.Ceiling(((double)N + V) / (double)(bf * alpha));
+
             nrOfPagesInIndex = (int)Math.Ceiling(nrOfPagesInPrimary / (double)bi);
             nrOfPagesInOverflow = (int)Math.Ceiling(nrOfPagesInPrimary * sizeCoeff);
 
@@ -574,14 +586,21 @@ namespace ISFO.source
         public void DisplayFileContent(string filePath)
         {
             string fileName = Path.GetFileName(filePath);
-            Console.WriteLine($"###### {fileName} ######");
-            for (int position = 0; position < GetNrOfPagesOfFile(filePath); position++)
+            if (filePath == fm.GetIndexFileName())
             {
-                Console.WriteLine($"------ Page: {position + 1} ------");
-                Page page = ReadPage(filePath, position * B);
-                foreach (var record in page.GetRecords())
+                DisplayIndexFileContent(filePath);
+            }
+            else
+            {
+                Console.WriteLine($"###### {fileName} ######");
+                for (int position = 0; position < GetNrOfPagesOfFile(filePath); position++)
                 {
-                    Console.Write(record.ToString());
+                    Console.WriteLine($"------ Page: {position + 1} ------");
+                    Page page = ReadPage(filePath, position * B);
+                    foreach (var record in page.GetRecords())
+                    {
+                        Console.Write(record.ToString());
+                    }
                 }
             }
         }
@@ -759,43 +778,34 @@ namespace ISFO.source
                 throw new InvalidOperationException("Cannot get nr of pages!");
         }
 
-        internal string ReadRecord(int key)
-        {
-
-            Record foundedrecord = GetRecord(key);
-            return (foundedrecord != null) ? foundedrecord.ToString() : "Record doesn't exist!";
-
-        }
-
-        public void DeleteRecord(int key)
-        {
-            Record toDelete = GetRecord(key);
-            if(toDelete == null)
-            {
-                throw new InvalidOperationException("Record to delete does not exist!");
-            }
-            else
-            {
-                toDelete.Delete();
-            }
-        }
-
-        public void CmdHandler(List<string> cmds)
+        public void CmdHandler(string[] cmds)
         {
 
             foreach (var cmd in cmds)
             {
-                Console.WriteLine($"************\n* {cmd} *\n************");
+                Console.WriteLine(
+                    $"\n   ******************\n" +
+                    $"   * cmd: {cmd} *\n" +
+                    $"   ******************\n");
 
                 CmdInterpreter(cmd);
                 
-
                 DisplayIndexFileContent(fm.GetIndexFileName());
                 DisplayFileContent(fm.GetPrimaryFileName());
                 DisplayFileContent(fm.GetOverflowFileName());
 
-
+                DisplayStats();
             }
+        }
+
+        private void DisplayStats()
+        {
+            // sub operations needed for display!!
+            // reset nr of op.!!
+            Console.WriteLine(
+                $"-------- STATS -------\n" +
+                $"operations: {nrOfOperations}" +
+                $"----------------------\n");
         }
 
         public void CmdInterpreter(string cmd)
@@ -815,13 +825,34 @@ namespace ISFO.source
                 Update(keyOfRecToUpdate, freshRecord);
             }
             else if (cmd.Contains("D"))
-            {
-                //Record toBeDeleted = GetRecord(recData[0]);
-                //Delete(toBeDeleted);
+            {              
+                Delete(recData[0]);
             }
-            else if (cmd == "R")
+            else if (cmd == "REORG")
             {
                 Reorganise();
+            }
+            else if (cmd == "DISP")
+            {
+                DisplayDBAscending();
+            }
+            else if (cmd == "SHOW")
+            {
+                int keyOfRecToShow = recData[0];
+                ShowRecord(keyOfRecToShow);
+            }
+        }
+
+        private void ShowRecord(int keyOfRecToShow)
+        {
+            Page page = GetPage(keyOfRecToShow);
+            if (page != null)
+            {
+                Console.WriteLine(page.Get(keyOfRecToShow).ToString());
+            }
+            else
+            {
+                Console.WriteLine("Record to delete doesn't exist!");
             }
         }
 

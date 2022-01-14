@@ -162,6 +162,7 @@ namespace ISFO
                                     writer.Write(item);
                                 }
                             }
+                            DBMS.nrOfOperations++;
                         }
                     }
                 }

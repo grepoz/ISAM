@@ -36,7 +36,7 @@ namespace ISFO.source
             string deletedChar = (deleted == 0) ? " " : "D";
             string nextChar = (next == -1) ? " " : next.ToString();
             //return $"{deletedChar}| [ key:{key}, data: ({data1}, {data2}), next: {nextChar} ]\n";
-            return $"{deletedChar}| [ key:{key}, next: {nextChar} ]\n";
+            return $"{deletedChar}|[key:{key}, data: ({data1}, {data2}), next: {nextChar}]\n";
         } 
 
         public int[] ToIntArr() => new int[] { key, data1, data2, deleted, next };

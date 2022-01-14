@@ -20,21 +20,23 @@ namespace ISFO
             {
                 testRecords.Add(new Record(nrOfTestRecs - i , (i + 1) * 2, (i + 1) * 4));
             }
-            //int cnt = 0;
-            //foreach (var record in testRecords)
-            //{
-            //    dbms.InsertRecord(record);
-            //    Console.WriteLine($"\nInsert {++cnt}\n" );
-            //    dbms.DisplayFileContent(fm.GetPrimaryFileName());
-            //    dbms.DisplayFileContent(fm.GetOverflowFileName());
 
-            //}
-            List<string> cmds = fm.ReadTestFile();
+            bool consoleCmd = true;
 
-            dbms.CmdHandler(cmds);
-
-            Console.WriteLine($"Found: {dbms.ReadRecord(key: 7)}");
-
+            if (consoleCmd)
+            {
+                string cmd;
+                while((cmd = Console.ReadLine()) != "Q")
+                {
+                    dbms.CmdHandler(new []{ cmd });
+                }
+            }
+            else
+            {
+                List<string> cmds = fm.ReadTestFile();
+                dbms.CmdHandler(cmds.ToArray());
+            }
+            
             Console.WriteLine($"nr of primary records: {DBMS.N}");
             Console.WriteLine($"nr of overflow records: {DBMS.V}");
 
@@ -45,8 +47,6 @@ namespace ISFO
             dbms.DisplayFileContent(fm.GetIndexFileName());
             dbms.DisplayFileContent(fm.GetPrimaryFileName());
             dbms.DisplayFileContent(fm.GetOverflowFileName());
-
-            //List<string> commands = fm.ReadTestFile();
 
             Console.ReadKey();
         }

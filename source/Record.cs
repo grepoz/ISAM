@@ -103,7 +103,11 @@ namespace ISFO.source
 
         public void Copy(Record toCopy)
         {
-            Update(toCopy);
+            key = toCopy.key;
+            data1 = toCopy.data1;
+            data2 = toCopy.data2;
+            deleted = toCopy.deleted;
+            next = toCopy.next;
         }
 
         public void Delete()

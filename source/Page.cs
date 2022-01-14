@@ -10,6 +10,7 @@ namespace ISFO
     {
         Record[] records;
         public int nr;
+        public string pageFilePath;
         public Page()
         {
             records = InitArrayOfRecords(DBMS.bf);
@@ -38,7 +39,17 @@ namespace ISFO
 
         public Record Get(int key)
         {
-            return records.ElementAt(key);
+            foreach (var record in records)
+            {
+                if (!record.IsEmpty())
+                {
+                    if (record.GetKey() == key)
+                    {
+                        return record;
+                    }
+                }
+            }
+            return null;
         }
 
         public Record[] GetRecords()
@@ -95,5 +106,14 @@ namespace ISFO
         }
 
         public bool IsEmpty() => MyGetLength() == 0;
+
+        public void SetPageNr(int pageNr)
+        {
+            nr = pageNr;
+        }
+        public void SetPageFilePath(string filePath)
+        {
+            pageFilePath = filePath;
+        }
     }
 }

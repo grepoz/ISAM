@@ -93,11 +93,11 @@ namespace ISFO
                 // default distribution
 
                 List<(int, int)> fileContent = new List<(int, int)>();
-                for (int i = 0; i < nrOfPages; i++)
+                for (int j = 0; j < DBMS.nrOfPagesInPrimary; j++)
                 {
-                    fileContent.Add((i * 10 + 1, i + 1));
+                    fileContent.Add((j * 10 + 1, j + 1));
                 }
-
+    
                 WriteToIndexFile(filePath, fileContent);
             }
 

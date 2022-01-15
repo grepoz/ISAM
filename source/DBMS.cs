@@ -116,15 +116,18 @@ namespace ISFO.source
 
         public void InsertRecord(Record toBeInserted)
         {
-            ValidRecord(toBeInserted);
+            if (IsRecordValid(toBeInserted))
+            {
+                int pageNr = GetPageNr(toBeInserted.GetKey());
 
-            int pageNr = GetPageNr(toBeInserted.GetKey());
+                Page page = ReadPage(fm.GetPrimaryFileName(), (pageNr - 1) * B);
 
-            Page page = ReadPage(fm.GetPrimaryFileName(), (pageNr - 1) * B);
-
-            Insert(page, toBeInserted, pageNr);
-            // page.GetRecords() jest zawsze rowne 1 stronie primary
-
+                Insert(page, toBeInserted, pageNr);
+            }
+            else
+            {
+                Console.WriteLine("Insert command is invalid!");
+            }
         }
 
         private void Insert(Page page, Record toBeInserted, int pageNr)
@@ -516,27 +519,14 @@ namespace ISFO.source
             }
         }
 
-        private void ValidRecord(Record record)
+        private bool IsRecordValid(Record record)
         {
-
-            if (record.GetKey() <= 0) {
-                throw new InvalidOperationException("Invalid key!");
+            if (record.GetKey() <= 0 || record.GetData1() <= 0 || record.GetData2() <= 0 ||
+                record.GetDeleted() == 1 || record.GetNext() != -1) {
+                return false;
             }
-            else if (record.GetData1() <= 0) {
-                throw new InvalidOperationException("Invalid data1!");
-            }
-            else if (record.GetData2() <= 0)
-            {
-                throw new InvalidOperationException("Invalid data2!");
-            }
-            else if (record.GetDeleted() == 1)
-            {
-                throw new InvalidOperationException("Cannot insert deleted record!");
-            }
-            else if (record.GetNext() != -1)
-            {
-                throw new InvalidOperationException("Inserted record cannot point to another record!");
-            }
+            
+            return true;
         }
         public void DisplayDBAscending()
         {
@@ -810,23 +800,38 @@ namespace ISFO.source
 
         public void CmdInterpreter(string cmd)
         {
-            // we assume that input is correct
-            List<int> recData = RetriveIntsFromString(cmd);
-
             if (cmd.Contains("I"))
             {
-                Record record = new Record(recData[0], recData[1], recData[2]);
-                InsertRecord(record);
+                Regex rx = new Regex(@"^I [0-9]* [0-9]* [0-9]*$");
+                if (rx.IsMatch(cmd))
+                {
+                    List<int> recData = RetriveIntsFromString(cmd);
+                    Record record = new Record(recData[0], recData[1], recData[2]);
+                    InsertRecord(record);
+                }
+                else Console.WriteLine("Wrong command!");
             }
             else if (cmd.Contains("U"))
             {
-                int keyOfRecToUpdate = recData[0];
-                Record freshRecord = new Record(recData[1], recData[2], recData[3]);
-                Update(keyOfRecToUpdate, freshRecord);
+                Regex rx = new Regex(@"^U [0-9]* [0-9]* [0-9]* [0-9]*$");
+                if (rx.IsMatch(cmd))
+                {
+                    List<int> recData = RetriveIntsFromString(cmd);
+                    int keyOfRecToUpdate = recData[0];
+                    Record freshRecord = new Record(recData[1], recData[2], recData[3]);
+                    Update(keyOfRecToUpdate, freshRecord);
+                }
+                else Console.WriteLine("Wrong command!");
             }
             else if (cmd.Contains("D"))
-            {              
-                Delete(recData[0]);
+            {
+                Regex rx = new Regex(@"^D [0-9]*$");
+                if (rx.IsMatch(cmd))
+                {
+                    List<int> recData = RetriveIntsFromString(cmd);
+                    Delete(recData[0]);
+                }
+                else Console.WriteLine("Wrong command!");
             }
             else if (cmd == "REORG")
             {
@@ -838,9 +843,16 @@ namespace ISFO.source
             }
             else if (cmd == "SHOW")
             {
-                int keyOfRecToShow = recData[0];
-                ShowRecord(keyOfRecToShow);
+                Regex rx = new Regex(@"^D [0-9]*$");
+                if (rx.IsMatch(cmd))
+                {
+                    List<int> recData = RetriveIntsFromString(cmd);
+                    int keyOfRecToShow = recData[0];
+                    ShowRecord(keyOfRecToShow);
+                }
+                else Console.WriteLine("Wrong command!");
             }
+            else Console.WriteLine("Wrong command!");
         }
 
         private void ShowRecord(int keyOfRecToShow)

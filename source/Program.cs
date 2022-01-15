@@ -18,17 +18,50 @@ namespace ISFO
             const int nrOfTestRecs = 5;
             for (int i = 0; i < nrOfTestRecs; i++)
             {
-                testRecords.Add(new Record(nrOfTestRecs - i , (i + 1) * 2, (i + 1) * 4));
+                testRecords.Add(new Record(nrOfTestRecs - i, (i + 1) * 2, (i + 1) * 4));
             }
 
-            bool consoleCmd = true;
+            Experiment ex = new Experiment();
 
-            if (consoleCmd)
+            //MenageCommands(IsInputFromConsole: true, dbms, fm);
+
+            //dbms.DisplayDBAscending();
+
+            //dbms.Reorganise();
+
+            //dbms.DisplayFileContent(fm.GetIndexFileName());
+            //dbms.DisplayFileContent(fm.GetPrimaryFileName());
+            //dbms.DisplayFileContent(fm.GetOverflowFileName());
+
+            Console.ReadKey();
+        }
+
+        private static void DispInstruction()
+        {
+            Console.WriteLine($"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" +
+                $"Input command:\n" +
+                $"- insert: 'I key data data' (example of insert: I 2 3 4)\n" +
+                $"- update: 'U key newKey newData newData' (example of update: U 2 2 3 4)\n" +
+                $"- delete: 'D key' (example od delete: D 2)\n" +
+                $"- show record: 'S key' (example od show: S 2)\n" +
+                $"- reorganise: 'REORG'\n" +
+                $"- display file: 'DISP'\n" +
+                $"- quit console: Q\n" +
+                $"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+        }
+
+        private static void MenageCommands(bool IsInputFromConsole, DBMS dbms, FileMenager fm)
+        {
+
+            if (IsInputFromConsole)
             {
-                string cmd;
-                while((cmd = Console.ReadLine()) != "Q")
+                while (true)
                 {
-                    dbms.CmdHandler(new []{ cmd });
+                    DispInstruction();
+                    string cmd = Console.ReadLine();
+                    if (cmd == "Q") break;
+
+                    dbms.CmdHandler(new[] { cmd });
                 }
             }
             else
@@ -36,19 +69,7 @@ namespace ISFO
                 List<string> cmds = fm.ReadTestFile();
                 dbms.CmdHandler(cmds.ToArray());
             }
-            
-            Console.WriteLine($"nr of primary records: {DBMS.N}");
-            Console.WriteLine($"nr of overflow records: {DBMS.V}");
 
-            dbms.DisplayDBAscending();
-
-            dbms.Reorganise();
-
-            dbms.DisplayFileContent(fm.GetIndexFileName());
-            dbms.DisplayFileContent(fm.GetPrimaryFileName());
-            dbms.DisplayFileContent(fm.GetOverflowFileName());
-
-            Console.ReadKey();
         }
     }
 }

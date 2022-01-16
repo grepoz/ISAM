@@ -15,10 +15,7 @@ namespace ISFO
             FileMenager fm = new FileMenager();
             DBMS dbms = new DBMS(fm, isDebug);
 
-            Experiment ex = new Experiment();
-            ex.ConductExperiment(1000, "r");
-
-            //MenageCommands(IsInputFromConsole: false, dbms, fm);
+            MenageCommands(IsInputFromConsole: true, dbms, fm);
 
             Console.WriteLine("END OF PROGRAM!");
             Console.ReadKey();

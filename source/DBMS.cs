@@ -22,7 +22,7 @@ namespace ISFO.source
         public static int bf = (int)Math.Floor((double)(B / R));    // attention! - Record includes 'P' !
         public static int bi = (int)Math.Floor((double)(B / (K + P)));  // = 8 
 
-        // change after reorganisation
+        // changes after reorganisation
         public static int nrOfPagesInPrimary = defaultNrOfPages;
         public static int nrOfPagesInOverflow =  (int)Math.Ceiling(defaultNrOfPages * sizeCoeff);
         public static int nrOfPagesInIndex = (int)Math.Ceiling(nrOfPagesInPrimary / (double)bi);
@@ -33,6 +33,7 @@ namespace ISFO.source
         // stats
         public static int nrOfOperations = 0;
         public static int fileSize = 0;
+        public static int nrOfReorg = 0;
 
         public bool isDebug;
 
@@ -442,6 +443,7 @@ namespace ISFO.source
         }
         public void Reorganise()
         {
+            nrOfReorg++;
 
             Console.WriteLine($"\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
                 $"~~~~~~ Reorganisation ~~~~~~\n" +
@@ -535,6 +537,8 @@ namespace ISFO.source
             
             nextEmptyOverflowIndex = 0;
             nrOfPagesInIndexOld = nrOfPagesInIndex;
+
+            Console.WriteLine("\n~~~~ After reorganisation! ~~~~\n");
         }
         private void DeleteOldFiles()
         {
@@ -611,7 +615,6 @@ namespace ISFO.source
             //    throw new InvalidOperationException("Cannot get page nr!");
             //}
         }
-
         private bool IsRecordValid(Record record)
         {
             if (record.GetKey() <= 0 || record.GetData1() <= 0 || record.GetData2() <= 0 ||
@@ -682,19 +685,15 @@ namespace ISFO.source
                     Page page = ReadPage(filePath, position * B);
                     foreach (var record in page.GetRecords())
                     {
-                        if(record.GetKey() != 0)
-                            Console.Write(record.ToString());
-                        else if (record.GetDeleted() == 1)
-                        {
-                            Console.Write(record.ToString());
-                        }
+                        //if(record.GetKey() != 0)
+                        Console.Write(record.ToString());
+                        //else if (record.GetDeleted() == 1)
+                        //    Console.Write(record.ToString());
                     }
                 }
                 Console.WriteLine();
             }
         }
-
-        // to change - function display should display every file
         public void DisplayIndexFileContent(string filePath)
         {
             string fileName = Path.GetFileName(filePath);
@@ -704,17 +703,12 @@ namespace ISFO.source
                 Console.WriteLine($"------ Page: {position + 1} ------");
                 var page = ReadIndexPage(filePath, position * B);
                 for (int i = 0; i < page.GetLength(0); i++)
-                {
-                    
-                    Console.WriteLine($"{page[i, 0]} {page[i, 1]}");
+                {                 
+                    Console.WriteLine($"[ key: {page[i, 0]}, page: {page[i, 1]} ]");
                 }
             }
             Console.WriteLine();
         }
-
-        //
-        // create function that cleans chains pointers !!!!
-        //
         private List<Record> GetOverflowChain(int anchorKey)
         {
             var chain = new List<Record>();
@@ -854,12 +848,10 @@ namespace ISFO.source
             return toFound;
 
         }
-
         private int GetOverflowPageNr(int indexInOverflow)
         {
             return (int)Math.Ceiling((indexInOverflow + 1.0f) / (double)bf);
         }
-
         public int GetNrOfPagesOfFile(string filePath)
         {
             if (filePath == fm.GetPrimaryFileName())
@@ -871,7 +863,6 @@ namespace ISFO.source
             else
                 throw new InvalidOperationException("Cannot get nr of pages!");
         }
-
         public void CmdHandler(string[] cmds)
         {
 
@@ -896,7 +887,6 @@ namespace ISFO.source
                 //DisplayStats();
             }
         }
-
         private void DisplayStats()
         {
             // sub operations needed for display!!
@@ -906,7 +896,6 @@ namespace ISFO.source
                 $"operations: {nrOfOperations}\n" +
                 $"----------------------\n");
         }
-
         public void CmdInterpreter(string cmd)
         {
             if (cmd.Contains("I"))
@@ -950,9 +939,9 @@ namespace ISFO.source
             {
                 DisplayDBAscending();
             }
-            else if (cmd == "SHOW")
+            else if (cmd.Contains("S "))
             {
-                Regex rx = new Regex(@"^D [0-9]*$");
+                Regex rx = new Regex(@"^S [0-9]*$");
                 if (rx.IsMatch(cmd))
                 {
                     List<int> recData = RetriveIntsFromString(cmd);
@@ -963,7 +952,6 @@ namespace ISFO.source
             }
             else Console.WriteLine("Wrong command!");
         }
-
         private void ShowRecord(int keyOfRecToShow)
         {
             Page page = GetPage(keyOfRecToShow);
@@ -976,13 +964,11 @@ namespace ISFO.source
                 Console.WriteLine("Record to delete doesn't exist!");
             }
         }
-
         private List<int> RetriveIntsFromString(string sNumbers)
         {
             sNumbers = sNumbers.Remove(0, 2);   // deleting letter & space (ex.: "I ")
             return sNumbers.Split(' ').Select(Int32.Parse).ToList();
         }
-
         public static void ResetStaticValues()
         {
             nrOfPagesInPrimary = defaultNrOfPages;

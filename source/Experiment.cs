@@ -16,10 +16,10 @@ namespace ISFO.source
 
             FileMenager fm = new FileMenager();
             DBMS dbms = new DBMS(fm, isDebug: false);
-            dbms.SetParametersDynamically(alphaValues[2], deltaValues[1]);
+            dbms.SetParametersDynamically(alphaValues[2], deltaValues[2]);
 
             dbms.CmdHandler(cmds.ToArray());
-            Console.WriteLine($"operations: {DBMS.nrOfOperations}, file size: {FileMenager.GetFileSize()}");
+            Console.WriteLine($"operations: {DBMS.nrOfOperations}, file size: {FileMenager.GetFileSize()}, nr of reorg: {DBMS.nrOfReorg}");
 
             //List<(int T, long S)> results = new List<(int T, long S)>();
 

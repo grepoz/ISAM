@@ -8,12 +8,28 @@ namespace ISFO.source
 {
     class Experiment
     {
-
-        public void ConductExperiment(string operation, int nrOfCmds)
+        public void ConductExperiment(int nrOfCmds, string mode)
         {
+            List<string> cmds = GenerateInsertCmds(nrOfCmds, mode);
+            double[] alphaValues = { 0.25, 0.5, 0.75, 1.0 };
+            double[] deltaValues = { 0.25, 0.5, 0.75, 1.0 };
 
-            GenerateInsertCmds(nrOfCmds, mode: "a");
+            List<(int T, int S)> results = new List<(int T, int S)>();
 
+            for (int i = 0; i < alphaValues.Length; i++)
+            {
+                for (int j = 0; j < deltaValues.Length; j++)
+                {
+                    FileMenager fm = new FileMenager();
+                    DBMS dbms = new DBMS(fm, isDebug: false);
+                    dbms.SetParametersDynamically(alphaValues[i], deltaValues[j]);
+
+                    dbms.CmdHandler(cmds.ToArray());
+                    results.Add((dbms.nrOfOperations, dbms.fileSize);
+
+
+                }
+            }
 
         }
 

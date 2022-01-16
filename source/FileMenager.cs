@@ -212,6 +212,11 @@ namespace ISFO
             return GetDirPath() + @"\" + fileName + attr + GetExt();
         }
 
+        public static int GetFileSize()
+        {
+
+        }
+
     }
 
 

@@ -11,8 +11,9 @@ namespace ISFO
     {
         static void Main()
         {
+            bool isDebug = true;
             FileMenager fm = new FileMenager();
-            DBMS dbms = new DBMS(fm);
+            DBMS dbms = new DBMS(fm, isDebug);
 
             List<Record> testRecords = new List<Record>();
             const int nrOfTestRecs = 5;
@@ -22,17 +23,11 @@ namespace ISFO
             }
 
             Experiment ex = new Experiment();
+            ex.ConductExperiment(1000, "a");
 
             MenageCommands(IsInputFromConsole: false, dbms, fm);
 
-            //dbms.DisplayDBAscending();
-
-            //dbms.Reorganise();
-
-            //dbms.DisplayFileContent(fm.GetIndexFileName());
-            //dbms.DisplayFileContent(fm.GetPrimaryFileName());
-            //dbms.DisplayFileContent(fm.GetOverflowFileName());
-
+            Console.WriteLine("END OF PROGRAM!");
             Console.ReadKey();
         }
 

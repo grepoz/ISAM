@@ -14,10 +14,10 @@ namespace ISFO.source
         public const int R = 20;   // size of record - 5* int 
         public const int K = 4;   // size of key - int 
         public const int P = 4;   // size of pointer - int 
-        public const double alpha = 0.5;   // page utlilization factor in the main area just after reorganization, α < 1
+        public double alpha = 0.5;   // page utlilization factor in the main area just after reorganization, α < 1
         public const int defaultNrOfPages = 3;
         public const int nrOfIntsInRecord = R / 4;
-        public const double delta = 0.2;  // fullfillment of overflow  
+        public double delta = 0.25;  // fullfillment of overflow  
         public const double sizeCoeff = 0.2;
         public static int bf = (int)Math.Floor((double)(B / R));    // attention! - Record includes 'P'
         public static int bi = (int)Math.Floor((double)(B / (K + P)));  // = 8 
@@ -30,18 +30,31 @@ namespace ISFO.source
         public static int V = 0;
         public static int N = 0;
 
+        // stats
         public static int nrOfOperations = 0;
+        public static int fileSize = 0;
+
+        public bool isDebug;
 
         private int nextEmptyOverflowIndex;
         private FileMenager fm;
 
-        public DBMS(FileMenager fm)
+        public DBMS(FileMenager fm, bool isDebug = true)
         {
+            SetParametersDynamically(alpha, delta);
+
+            this.isDebug = isDebug;
             this.fm = fm;
             nextEmptyOverflowIndex = 0;
 
             InsertSpecialFirstRecord(fm.GetPrimaryFileName());
             N++;
+        }
+
+        public void SetParametersDynamically(double alpha, double delta)
+        {
+            this.alpha = alpha;
+            this.delta = delta;
         }
 
         private void InsertSpecialFirstRecord(string filePath)
@@ -190,10 +203,11 @@ namespace ISFO.source
                     FileMenager.WriteToFile(fm.GetOverflowFileName(), page.GetRecords(), pageNr * B);
                     inserted = true;
                     V++;
+
+                    // check if all pages are full (mayby with deleted records..)
+                    if(page.IsFull() && pageNr + 1 == nrOfPagesInOverflow) Reorganise();
                 }
             }
-
-            // set correctly pointer !!!!!!!!!!!
 
             if (!inserted)
             {
@@ -206,11 +220,11 @@ namespace ISFO.source
 
             if (!prevRecord.HasNext())
             {
-                InsertToOverflowFileAtEnd(toBeInserted);
-
+                // set pointer to next
                 prevRecord.SetNext(nextEmptyOverflowIndex++);
                 FileMenager.WriteToFile(fm.GetPrimaryFileName(), page.GetRecords(), (page.nr - 1) * B);
 
+                InsertToOverflowFileAtEnd(toBeInserted);
             }
             else
             {
@@ -222,10 +236,12 @@ namespace ISFO.source
                 if (firstRecordInOverflow.GetKey() < toBeInserted.GetKey())
                 {
                     // ustaw wsk i wpisz to overflow - jesli w overflow skonczylo sie miejsce
-                    InsertToOverflowFileAtEnd(toBeInserted);
-
                     firstRecordInOverflow.SetNext(nextEmptyOverflowIndex++);
                     firstRecordInOverflow.WriteRecToFile(fm.GetOverflowFileName(), prevRecord.GetNext());
+
+                    InsertToOverflowFileAtEnd(toBeInserted);
+
+                    
  
                 }
                 else if (firstRecordInOverflow.GetKey() == toBeInserted.GetKey())
@@ -346,19 +362,17 @@ namespace ISFO.source
             if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
 
             bool isFound = false;
-            int overflowPageNrSecondAttempt = -1;
             Page overflowPage = null;
-            int overflowPageNr = -1;
-
+            int overflowPageNr;
+            bool isNextRecordOnReadPage = false;
             while (!isFound)
             {
                 int indexInOverflow = prevRecord.GetNext();
                 if (indexInOverflow == -1) break;
 
-                overflowPageNr = GetOverflowPageNr(indexInOverflow);
-
-                if (overflowPageNr != overflowPageNrSecondAttempt)
+                if (!isNextRecordOnReadPage)
                 {
+                    overflowPageNr = GetOverflowPageNr(indexInOverflow);
                     overflowPage = ReadPage(fm.GetOverflowFileName(), (overflowPageNr - 1) * B);
                 }
 
@@ -375,7 +389,8 @@ namespace ISFO.source
                     else if (toFound.GetNext() != -1)
                     {
                         // check if requested record is in the downoladed page
-                        overflowPageNrSecondAttempt = GetOverflowPageNr(toFound.GetNext());
+                        isNextRecordOnReadPage = IsNextRecordOnReadPage(prevRecord.GetNext(), toFound.GetNext());
+                        //overflowPageNrSecondAttempt = GetOverflowPageNr(toFound.GetNext());
                         prevRecord = toFound;
                     }
                     else
@@ -391,6 +406,16 @@ namespace ISFO.source
                 }
             }
             return overflowPage;
+
+        }
+        private bool IsNextRecordOnReadPage(int anchorIndex, int nextRecIndex)
+        {
+            int pageNr = anchorIndex / bf;
+
+            if (nextRecIndex >= anchorIndex && nextRecIndex < pageNr * (bf + 1))
+                return true;
+            else
+                return false;
 
         }
         private void Delete(int keyOfRecToBeDeleted)
@@ -417,16 +442,20 @@ namespace ISFO.source
         }
         public void Reorganise()
         {
+
             Console.WriteLine($"\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
                 $"~~~~~~ Reorganisation ~~~~~~\n" +
                 $"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
-            DisplayIndexFileContent(fm.GetIndexFileName());
-            DisplayFileContent(fm.GetPrimaryFileName());
-            DisplayFileContent(fm.GetOverflowFileName());
+            if (isDebug)
+            {
+                DisplayIndexFileContent(fm.GetIndexFileName());
+                DisplayFileContent(fm.GetPrimaryFileName());
+                DisplayFileContent(fm.GetOverflowFileName());
 
-            Console.WriteLine($"N: {N}");
-            Console.WriteLine($"V: {V}");
+                Console.WriteLine($"N: {N}");
+                Console.WriteLine($"V: {V}");
+            }
 
             int nrOfPagesInOldPrimary = nrOfPagesInPrimary;
             GenerateFilesToReorganisation();
@@ -454,7 +483,6 @@ namespace ISFO.source
 
                 foreach (var oldRecord in oldPrimaryPage.GetRecords())
                 {
-                    // tu sie loopuje!!!
                     if (oldRecord.IsEmpty()) break;
                     foreach (var item in GetOverflowChain(oldRecord.GetKey()))
                     {
@@ -506,6 +534,7 @@ namespace ISFO.source
             V = 0;
             
             nextEmptyOverflowIndex = 0;
+            nrOfPagesInIndexOld = nrOfPagesInIndex;
         }
         private void DeleteOldFiles()
         {
@@ -766,6 +795,7 @@ namespace ISFO.source
 
                 if (toFound.IsEmpty())
                 {
+                    //return null;
                     throw new InvalidOperationException("Pointer to empty record - record does not exist???!");
                 }
                 else
@@ -853,13 +883,15 @@ namespace ISFO.source
                     $"   ******************\n");
               
                 CmdInterpreter(cmd);
-                
-                DisplayIndexFileContent(fm.GetIndexFileName());
-                DisplayFileContent(fm.GetPrimaryFileName());
-                DisplayFileContent(fm.GetOverflowFileName());
+                if (isDebug)
+                {
+                    DisplayIndexFileContent(fm.GetIndexFileName());
+                    DisplayFileContent(fm.GetPrimaryFileName());
+                    DisplayFileContent(fm.GetOverflowFileName());
 
-                Console.WriteLine($"N: {N}");
-                Console.WriteLine($"V: {V}");
+                    Console.WriteLine($"N: {N}");
+                    Console.WriteLine($"V: {V}");
+                }
 
                 //DisplayStats();
             }
@@ -950,5 +982,6 @@ namespace ISFO.source
             sNumbers = sNumbers.Remove(0, 2);   // deleting letter & space (ex.: "I ")
             return sNumbers.Split(' ').Select(Int32.Parse).ToList();
         }
+
     }
 }

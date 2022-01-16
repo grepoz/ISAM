@@ -49,9 +49,6 @@ namespace ISFO
         {
             try
             {
-                if (Directory.Exists(dirPath))
-                    Console.WriteLine("Directory already exists!\n");
-
                 DirectoryInfo di = Directory.CreateDirectory(dirPath);
             }
             catch (Exception e)

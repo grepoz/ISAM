@@ -23,7 +23,7 @@ namespace ISFO
 
             Experiment ex = new Experiment();
 
-            //MenageCommands(IsInputFromConsole: true, dbms, fm);
+            MenageCommands(IsInputFromConsole: false, dbms, fm);
 
             //dbms.DisplayDBAscending();
 

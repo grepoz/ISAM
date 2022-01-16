@@ -16,7 +16,7 @@ namespace ISFO
             DBMS dbms = new DBMS(fm, isDebug);
 
             Experiment ex = new Experiment();
-            ex.ConductExperiment(1000, "a");
+            ex.ConductExperiment(1000, "r");
 
             //MenageCommands(IsInputFromConsole: false, dbms, fm);
 

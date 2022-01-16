@@ -11,46 +11,49 @@ namespace ISFO.source
         public void ConductExperiment(int nrOfCmds, string mode)
         {
             List<string> cmds = GenerateInsertCmds(nrOfCmds, mode);
-            double[] alphaValues = { 0.25, 0.5, 0.75, 1.0 };
-            double[] deltaValues = { 0.25, 0.5, 0.75, 1.0 };
+            double[] alphaValues = { 0.25, 0.5, 0.75 };
+            double[] deltaValues = { 0.25, 0.5, 0.75 };
 
-            List<(int T, long S)> results = new List<(int T, long S)>();
-
-            for (int i = 0; i < alphaValues.Length; i++)
-            {
-                for (int j = 0; j < deltaValues.Length; j++)
-                {
-                    FileMenager fm = new FileMenager();
-                    DBMS dbms = new DBMS(fm, isDebug: false);
-                    dbms.SetParametersDynamically(alphaValues[i], deltaValues[j]);
-
-                    dbms.CmdHandler(cmds.ToArray());
-
-                    results.Add((DBMS.nrOfOperations, FileMenager.GetFileSize()));
-
-                    dbms.DisplayIndexFileContent(fm.GetIndexFileName());
-                    dbms.DisplayFileContent(fm.GetPrimaryFileName());
-                    dbms.DisplayFileContent(fm.GetOverflowFileName());
-
-                    Console.WriteLine($"N: {DBMS.N}");
-                    Console.WriteLine($"V: {DBMS.V}");
-
-                    DBMS.ResetStaticValues();
-                    fm.DeleteFiles();
-
-                }
-            }
-
-            foreach (var result in results)
-            {
-                Console.WriteLine($"operations: {result.T}, file size: {result.S}");
-            }
-
-            /* FileMenager fm = new FileMenager();
+            FileMenager fm = new FileMenager();
             DBMS dbms = new DBMS(fm, isDebug: false);
-            dbms.SetParametersDynamically(0.25, 0.5);
+            dbms.SetParametersDynamically(alphaValues[2], deltaValues[1]);
 
-            dbms.CmdHandler(cmds.ToArray());*/
+            dbms.CmdHandler(cmds.ToArray());
+            Console.WriteLine($"operations: {DBMS.nrOfOperations}, file size: {FileMenager.GetFileSize()}");
+
+            //List<(int T, long S)> results = new List<(int T, long S)>();
+
+            //for (int i = 0; i < alphaValues.Length; i++)
+            //{
+            //    for (int j = 0; j < deltaValues.Length; j++)
+            //    {
+            //        FileMenager fm = new FileMenager();
+            //        DBMS dbms = new DBMS(fm, isDebug: false);
+            //        dbms.SetParametersDynamically(alphaValues[i], deltaValues[j]);
+
+            //        dbms.CmdHandler(cmds.ToArray());
+
+            //        results.Add((DBMS.nrOfOperations, FileMenager.GetFileSize()));
+
+            //        dbms.DisplayIndexFileContent(fm.GetIndexFileName());
+            //        dbms.DisplayFileContent(fm.GetPrimaryFileName());
+            //        dbms.DisplayFileContent(fm.GetOverflowFileName());
+
+            //        Console.WriteLine($"N: {DBMS.N}");
+            //        Console.WriteLine($"V: {DBMS.V}");
+
+            //        DBMS.ResetStaticValues();
+            //        fm.DeleteFiles();
+
+            //    }
+            //}
+
+            //foreach (var result in results)
+            //{
+            //    Console.WriteLine($"operations: {result.T}, file size: {result.S}");
+            //}
+
+
         }
 
         public List<string> GenerateInsertCmds(int nrOfCmds, string mode)
@@ -78,9 +81,20 @@ namespace ISFO.source
             }
             else if (mode == "r")
             {
+                List<int> numbers = new List<int>();
                 for (int i = 0; i < nrOfCmds; i++)
                 {
-                    cmds.Add($"I {Math.Ceiling(rnd.Next() / 1000.0)} 1 1");
+                    int rndNr;
+                    while (true) {
+                        rndNr = (int)Math.Ceiling(rnd.Next() / 1000.0);
+                        if (!numbers.Contains(rndNr))
+                        {
+                            numbers.Add(rndNr);
+                            break;
+                        }
+                     }
+
+                    cmds.Add($"I {rndNr} 1 1");
                 }
             }
             else

@@ -15,7 +15,7 @@ namespace ISFO.source
         public const int K = 4;   // size of key - int 
         public const int P = 4;   // size of pointer - int 
         public double alpha = 0.5;   // page utlilization factor in the main area just after reorganization, α < 1
-        public const int defaultNrOfPages = 3;
+        public const int defaultNrOfPages = 1;
         public const int nrOfIntsInRecord = R / 4;
         public double delta = 0.25;  // fullfillment of overflow   
         public const double sizeCoeff = 0.2;

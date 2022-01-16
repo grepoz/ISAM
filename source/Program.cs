@@ -15,17 +15,10 @@ namespace ISFO
             FileMenager fm = new FileMenager();
             DBMS dbms = new DBMS(fm, isDebug);
 
-            List<Record> testRecords = new List<Record>();
-            const int nrOfTestRecs = 5;
-            for (int i = 0; i < nrOfTestRecs; i++)
-            {
-                testRecords.Add(new Record(nrOfTestRecs - i, (i + 1) * 2, (i + 1) * 4));
-            }
-
             Experiment ex = new Experiment();
             ex.ConductExperiment(1000, "a");
 
-            MenageCommands(IsInputFromConsole: false, dbms, fm);
+            //MenageCommands(IsInputFromConsole: false, dbms, fm);
 
             Console.WriteLine("END OF PROGRAM!");
             Console.ReadKey();

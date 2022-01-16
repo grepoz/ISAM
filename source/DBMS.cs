@@ -17,9 +17,9 @@ namespace ISFO.source
         public double alpha = 0.5;   // page utlilization factor in the main area just after reorganization, α < 1
         public const int defaultNrOfPages = 3;
         public const int nrOfIntsInRecord = R / 4;
-        public double delta = 0.25;  // fullfillment of overflow  
+        public double delta = 0.25;  // fullfillment of overflow   
         public const double sizeCoeff = 0.2;
-        public static int bf = (int)Math.Floor((double)(B / R));    // attention! - Record includes 'P'
+        public static int bf = (int)Math.Floor((double)(B / R));    // attention! - Record includes 'P' !
         public static int bi = (int)Math.Floor((double)(B / (K + P)));  // = 8 
 
         // change after reorganisation
@@ -982,6 +982,19 @@ namespace ISFO.source
             sNumbers = sNumbers.Remove(0, 2);   // deleting letter & space (ex.: "I ")
             return sNumbers.Split(' ').Select(Int32.Parse).ToList();
         }
+
+        public static void ResetStaticValues()
+        {
+            nrOfPagesInPrimary = defaultNrOfPages;
+            nrOfPagesInOverflow = (int)Math.Ceiling(defaultNrOfPages * sizeCoeff);
+            nrOfPagesInIndex = (int)Math.Ceiling(nrOfPagesInPrimary / (double)bi);
+            nrOfPagesInIndexOld = nrOfPagesInIndex;
+            V = 0;
+            N = 0;
+
+            nrOfOperations = 0;
+            fileSize = 0;
+    }
 
     }
 }

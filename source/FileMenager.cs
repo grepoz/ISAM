@@ -22,7 +22,6 @@ namespace ISFO
         private static readonly string primaryNewFile = CreateFilePath("primary", attr);
         private static readonly string overflowNewFile = CreateFilePath("overflow", attr);
 
-
         public FileMenager()
         {
             CreateDirectory();
@@ -109,6 +108,12 @@ namespace ISFO
             {
                 Console.WriteLine(e.ToString());
             }
+        }
+        internal void DeleteFiles()
+        {
+            File.Delete(indexFile);
+            File.Delete(primaryFile);
+            File.Delete(overflowFile);
         }
 
         public static void WriteToIndexFile(string filePath, List<(int, int)> fileContent, int position = 0)
@@ -212,9 +217,29 @@ namespace ISFO
             return GetDirPath() + @"\" + fileName + attr + GetExt();
         }
 
-        public static int GetFileSize()
+        public static long GetFileSize()
         {
+            var fiArray = new FileInfo[3];
 
+            fiArray[0] = new FileInfo(indexFile);
+            fiArray[1] = new FileInfo(primaryFile);
+            fiArray[2] = new FileInfo(overflowFile);
+
+            long wholeFileSize = 0;
+            try
+            {
+                foreach (var fi in fiArray)
+                {
+                    wholeFileSize += fi.Length;
+                }
+            }
+            catch (Exception)
+            {
+                throw new InvalidOperationException("cannot count size of file!");
+            }
+            
+            // returning value in kB
+            return wholeFileSize / 1000;
         }
 
     }

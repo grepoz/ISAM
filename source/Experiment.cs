@@ -14,7 +14,7 @@ namespace ISFO.source
             double[] alphaValues = { 0.25, 0.5, 0.75, 1.0 };
             double[] deltaValues = { 0.25, 0.5, 0.75, 1.0 };
 
-            List<(int T, int S)> results = new List<(int T, int S)>();
+            List<(int T, long S)> results = new List<(int T, long S)>();
 
             for (int i = 0; i < alphaValues.Length; i++)
             {
@@ -25,12 +25,32 @@ namespace ISFO.source
                     dbms.SetParametersDynamically(alphaValues[i], deltaValues[j]);
 
                     dbms.CmdHandler(cmds.ToArray());
-                    results.Add((dbms.nrOfOperations, dbms.fileSize);
 
+                    results.Add((DBMS.nrOfOperations, FileMenager.GetFileSize()));
+
+                    dbms.DisplayIndexFileContent(fm.GetIndexFileName());
+                    dbms.DisplayFileContent(fm.GetPrimaryFileName());
+                    dbms.DisplayFileContent(fm.GetOverflowFileName());
+
+                    Console.WriteLine($"N: {DBMS.N}");
+                    Console.WriteLine($"V: {DBMS.V}");
+
+                    DBMS.ResetStaticValues();
+                    fm.DeleteFiles();
 
                 }
             }
 
+            foreach (var result in results)
+            {
+                Console.WriteLine($"operations: {result.T}, file size: {result.S}");
+            }
+
+            /* FileMenager fm = new FileMenager();
+            DBMS dbms = new DBMS(fm, isDebug: false);
+            dbms.SetParametersDynamically(0.25, 0.5);
+
+            dbms.CmdHandler(cmds.ToArray());*/
         }
 
         public List<string> GenerateInsertCmds(int nrOfCmds, string mode)

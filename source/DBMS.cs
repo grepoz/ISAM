@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace ISFO.source
+namespace ISAM.source
 {
     class DBMS
     {
@@ -14,10 +14,10 @@ namespace ISFO.source
         public const int R = 20;   // size of record - 5* int 
         public const int K = 4;   // size of key - int 
         public const int P = 4;   // size of pointer - int 
-        public double alpha = 0.5;   // page utlilization factor in the main area just after reorganization, α < 1
+        public double alpha = 0.75;   // page utlilization factor in the main area just after reorganization, α < 1
         public const int defaultNrOfPages = 1;
         public const int nrOfIntsInRecord = R / 4;
-        public double delta = 0.25;  // fullfillment of overflow   
+        public double delta = 0.75;  // fullfillment of overflow   
         public const double sizeCoeff = 0.2;
         public static int bf = (int)Math.Floor((double)(B / R));    // attention! - Record includes 'P' !
         public static int bi = (int)Math.Floor((double)(B / (K + P)));  // = 8 
@@ -144,9 +144,10 @@ namespace ISFO.source
         private void Insert(Page page, Record toBeInserted, int pageNr)
         {
             Record prevRecord = null;
-            
-            foreach (var record in page.GetRecords())
+
+            for (int i = 0; i < page.MyGetLength(); i++)
             {
+                Record record = page.GetRecords().ElementAt(i);
                 if (record.IsEmpty())
                 {                    
                     page.ReplaceFirstEmpty(toBeInserted);
@@ -165,7 +166,15 @@ namespace ISFO.source
                 }
                 else // ==
                 {
-                    Console.WriteLine("Cannot insert or update record! Key duplicated!");
+                    if(record.Exist())
+                        Console.WriteLine("Cannot insert or update record! Key duplicated!");
+                    else
+                    {
+                        page.Get(toBeInserted.GetKey()).Update(toBeInserted);
+                        page.Get(toBeInserted.GetKey()).SetDeleted(0);
+                        FileMenager.WriteToFile(fm.GetPrimaryFileName(), page.GetRecords(), (pageNr - 1) * B);
+                        N++;
+                    }
                     return;
                 }
 
@@ -241,13 +250,17 @@ namespace ISFO.source
                     firstRecordInOverflow.WriteRecToFile(fm.GetOverflowFileName(), prevRecord.GetNext());
 
                     InsertToOverflowFileAtEnd(toBeInserted);
-
-                    
- 
                 }
                 else if (firstRecordInOverflow.GetKey() == toBeInserted.GetKey())
                 {
-                    throw new InvalidOperationException("Key of inserted record duplicated! Insert rejected!");
+                    if(firstRecordInOverflow.Exist())
+                        Console.WriteLine("Key of inserted record duplicated! Insert rejected!");
+                    else
+                    {
+                        firstRecordInOverflow = toBeInserted;
+                        firstRecordInOverflow.WriteRecToFile(fm.GetOverflowFileName(), prevRecord.GetNext());
+                        V++;
+                    }
                 }
                 else
                 {
@@ -362,11 +375,11 @@ namespace ISFO.source
         {
             if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
 
-            bool isFound = false;
+            bool ISAMund = false;
             Page overflowPage = null;
             int overflowPageNr;
             bool isNextRecordOnReadPage = false;
-            while (!isFound)
+            while (!ISAMund)
             {
                 int indexInOverflow = prevRecord.GetNext();
                 if (indexInOverflow == -1) break;
@@ -385,7 +398,7 @@ namespace ISFO.source
                 {
                     if (toFound.GetKey() == keyOfRecToFind)
                     {
-                        isFound = true;
+                        ISAMund = true;
                     }
                     else if (toFound.GetNext() != -1)
                     {
@@ -770,9 +783,9 @@ namespace ISFO.source
         public Record GetNextRecordFromOverflow(Record prevRecord)
         {
             if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
-            bool isFound = false;
+            bool ISAMund = false;
             Record toFound = null;
-            while (!isFound)
+            while (!ISAMund)
             {
                 int indexInOverflow = prevRecord.GetNext();
 
@@ -794,7 +807,7 @@ namespace ISFO.source
                 }
                 else
                 {
-                    isFound = true;
+                    ISAMund = true;
                 }
 
             }
@@ -804,10 +817,10 @@ namespace ISFO.source
         public Record GetRecordFromOverflow(Record prevRecord, int keyOfRecToFind)
         {
             if (prevRecord == null) throw new InvalidOperationException("uninitialised!");
-            bool isFound = false;
+            bool ISAMund = false;
             Record toFound = null;
             int overflowPageNrSecondAttempt = -1;
-            while (!isFound)
+            while (!ISAMund)
             {
                 int indexInOverflow = prevRecord.GetNext();
                 if (indexInOverflow == -1) break;
@@ -826,7 +839,7 @@ namespace ISFO.source
                 {
                     if (toFound.GetKey() == keyOfRecToFind)
                     {
-                        isFound = true;
+                        ISAMund = true;
                     }
                     else if (toFound.GetNext() != -1)
                     {
@@ -898,18 +911,18 @@ namespace ISFO.source
         }
         public void CmdInterpreter(string cmd)
         {
-            if (cmd.Contains("I"))
+            if (cmd.Contains("I "))
             {
-                Regex rx = new Regex(@"^I [0-9]* [0-9]* [0-9]*$");
+                Regex rx = new Regex(@"^I [0-9]*$");
                 if (rx.IsMatch(cmd))
                 {
                     List<int> recData = RetriveIntsFromString(cmd);
-                    Record record = new Record(recData[0], recData[1], recData[2]);
+                    Record record = new Record(recData[0], 1, 1);
                     InsertRecord(record);
                 }
                 else Console.WriteLine("Wrong command!");
             }
-            else if (cmd.Contains("U"))
+            else if (cmd.Contains("U "))
             {
                 Regex rx = new Regex(@"^U [0-9]* [0-9]* [0-9]* [0-9]*$");
                 if (rx.IsMatch(cmd))
@@ -921,7 +934,7 @@ namespace ISFO.source
                 }
                 else Console.WriteLine("Wrong command!");
             }
-            else if (cmd.Contains("D"))
+            else if (cmd.Contains("D "))
             {
                 Regex rx = new Regex(@"^D [0-9]*$");
                 if (rx.IsMatch(cmd))

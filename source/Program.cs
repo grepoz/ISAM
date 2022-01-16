@@ -1,11 +1,11 @@
-﻿using ISFO.source;
+﻿using ISAM.source;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ISFO
+namespace ISAM
 {
     class Program
     {
@@ -15,7 +15,7 @@ namespace ISFO
             FileMenager fm = new FileMenager();
             DBMS dbms = new DBMS(fm, isDebug);
 
-            MenageCommands(IsInputFromConsole: true, dbms, fm);
+            MenageCommands(IsInputFromConsole: false, dbms, fm);
 
             Console.WriteLine("END OF PROGRAM!");
             Console.ReadKey();

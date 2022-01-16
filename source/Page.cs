@@ -1,10 +1,10 @@
-﻿using ISFO.source;
+﻿using ISAM.source;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 
-namespace ISFO
+namespace ISAM
 {
     class Page
     {

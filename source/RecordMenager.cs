@@ -1,8 +1,8 @@
-﻿using ISFO.source;
+﻿using ISAM.source;
 using System;
 using System.Text.RegularExpressions;
 
-namespace ISFO
+namespace ISAM
 {
     class RecordMenager
     {

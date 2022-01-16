@@ -1,9 +1,12 @@
 ﻿using ISAM.source;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+//
+// Struktury baz danych - projekt 2
+// author: Grzegorz Pozorski
+// indeks: 180169
+//
 
 namespace ISAM
 {

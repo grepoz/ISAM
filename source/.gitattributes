@@ -20,7 +20,42 @@ namespace ISAM.source
 
             dbms.CmdHandler(cmds.ToArray());
             Console.WriteLine($"operations: {Dbms.nrOfOperations}, file size: {FileMenager.GetFileSize()}, nr of reorg: {Dbms.nrOfReorg}");
+
+            //List<(int T, long S)> results = new List<(int T, long S)>();
+
+            //for (int i = 0; i < alphaValues.Length; i++)
+            //{
+            //    for (int j = 0; j < deltaValues.Length; j++)
+            //    {
+            //        FileMenager fm = new FileMenager();
+            //        DBMS dbms = new DBMS(fm, isDebug: false);
+            //        dbms.SetParametersDynamically(alphaValues[i], deltaValues[j]);
+
+            //        dbms.CmdHandler(cmds.ToArray());
+
+            //        results.Add((DBMS.nrOfOperations, FileMenager.GetFileSize()));
+
+            //        dbms.DisplayIndexFileContent(fm.GetIndexFileName());
+            //        dbms.DisplayFileContent(fm.GetPrimaryFileName());
+            //        dbms.DisplayFileContent(fm.GetOverflowFileName());
+
+            //        Console.WriteLine($"N: {DBMS.N}");
+            //        Console.WriteLine($"V: {DBMS.V}");
+
+            //        DBMS.ResetStaticValues();
+            //        fm.DeleteFiles();
+
+            //    }
+            //}
+
+            //foreach (var result in results)
+            //{
+            //    Console.WriteLine($"operations: {result.T}, file size: {result.S}");
+            //}
+
+
         }
+
         public List<string> GenerateInsertCmds(int nrOfCmds, string mode)
         {
             // thera are 3 modes: a (ascending), b (descending), r (random)
@@ -74,6 +109,7 @@ namespace ISAM.source
                     throw new InvalidOperationException("Wrong mode!");
             }
 
+
             return cmds;
         }
 
@@ -90,5 +126,6 @@ namespace ISAM.source
 
             return cmds;
         }
+
     }
 }

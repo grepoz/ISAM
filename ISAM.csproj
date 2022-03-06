@@ -48,7 +48,6 @@
     <Compile Include="source\DBMS.cs" />
     <Compile Include="source\Experiment.cs" />
     <Compile Include="source\FileMenager.cs" />
-    <Compile Include="source\MyFile.cs" />
     <Compile Include="source\Page.cs" />
     <Compile Include="source\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

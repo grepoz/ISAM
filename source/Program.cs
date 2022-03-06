@@ -1,24 +1,21 @@
 ﻿using ISAM.source;
 using System;
-using System.Collections.Generic;
 
 //
-// Struktury baz danych - projekt 2
 // author: Grzegorz Pozorski
-// indeks: 180169
 //
 
 namespace ISAM
 {
-    class Program
+    internal class Program
     {
-        static void Main()
+        protected Program(){}
+        private static void Main()
         {
-            bool isDebug = true;
-            FileMenager fm = new FileMenager();
-            DBMS dbms = new DBMS(fm, isDebug);
+            var fm = new FileMenager();
+            var dbms = new Dbms(fm);
 
-            MenageCommands(IsInputFromConsole: false, dbms, fm);
+            MenageCommands(true, dbms, fm);
 
             Console.WriteLine("END OF PROGRAM!");
             Console.ReadKey();
@@ -38,15 +35,15 @@ namespace ISAM
                 $"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
         }
 
-        private static void MenageCommands(bool IsInputFromConsole, DBMS dbms, FileMenager fm)
+        private static void MenageCommands(bool isInputFromConsole, Dbms dbms, FileMenager fm)
         {
 
-            if (IsInputFromConsole)
+            if (isInputFromConsole)
             {
                 while (true)
                 {
                     DispInstruction();
-                    string cmd = Console.ReadLine();
+                    var cmd = Console.ReadLine();
                     if (cmd == "Q") break;
 
                     dbms.CmdHandler(new[] { cmd });
@@ -54,7 +51,7 @@ namespace ISAM
             }
             else
             {
-                List<string> cmds = fm.ReadTestFile();
+                var cmds = fm.ReadTestFile();
                 dbms.CmdHandler(cmds.ToArray());
             }
 

@@ -17,29 +17,29 @@ namespace ISAM
         private static readonly string primaryFile = CreateFilePath("primary");
         private static readonly string overflowFile = CreateFilePath("overflow");
         private static readonly string testFile = dirPath + @"\" + "test.txt";
-        const string attr = "_new";
-        private static readonly string indexNewFile = CreateFilePath("index", attr);
-        private static readonly string primaryNewFile = CreateFilePath("primary", attr);
-        private static readonly string overflowNewFile = CreateFilePath("overflow", attr);
+        private const string Attr = "_new";
+        private static readonly string indexNewFile = CreateFilePath("index", Attr);
+        private static readonly string primaryNewFile = CreateFilePath("primary", Attr);
+        private static readonly string overflowNewFile = CreateFilePath("overflow", Attr);
 
         public FileMenager()
         {
             CreateDirectory();
-            GenerateIndexFile(indexFile, DBMS.defaultNrOfPages);
-            GenerateAreaFile(primaryFile, DBMS.defaultNrOfPages);
-            GenerateAreaFile(overflowFile, DBMS.defaultNrOfPages);
+            GenerateIndexFile(indexFile, Dbms.DefaultNrOfPages);
+            GenerateAreaFile(primaryFile, Dbms.DefaultNrOfPages);
+            GenerateAreaFile(overflowFile, Dbms.DefaultNrOfPages);
         }
 
         public static void GenerateAreaFile(string filePath, int nrOfPages)
         {
             CreateFile(filePath);
 
-            Record[] records = Page.InitArrayOfRecords(DBMS.bf);
+            var records = Page.InitArrayOfRecords(Dbms.bf);
 
             // oblicz bf dynamicznie
-            for (int i = 0; i < nrOfPages; i++)
+            for (var i = 0; i < nrOfPages; i++)
             {
-                WriteToFile(filePath, records, i * DBMS.B);
+                WriteToFile(filePath, records, i * Dbms.B);
             }
 
         }
@@ -48,55 +48,28 @@ namespace ISAM
         {
             try
             {
-                DirectoryInfo di = Directory.CreateDirectory(dirPath);
+                Directory.CreateDirectory(dirPath);
             }
             catch (Exception e)
             {
-                Console.WriteLine("The process failed: {0}", e.ToString());
+                Console.WriteLine("The process failed: {0}", e);
             }
         }
-        /*public MyFile GenerateFileFromConsole()
-        {
-            Console.WriteLine("\nInput several records in format: key 'space' nr 'space' nr 'enter'.");
-            Console.WriteLine("To finish type 'q'");
-            string userInput;
-            Record[] userRecords = Page.InitArrayOfRecords(DBMS.bf);
 
-            while (true)
-            {
-                userInput = Console.ReadLine();
-                if (userInput.Contains("q")) break;
-
-                // checking overflow not implemented
-                if (!RecordMenager.IsRecordFormatValid(userInput))
-                    Console.WriteLine("Input valid values!");
-                else
-                    userRecords.Add(RecordMenager.ParseStrToRecord(userInput));
-            }
-
-            MyFile consoleInputTape = new MyFile(testFile, userRecords);
-
-            return consoleInputTape;
-        }
-        */
 
         public static void GenerateIndexFile(string filePath, int nrOfPages = 0)
         {
+            if (nrOfPages <= 0) return;
+
             CreateFile(filePath);
 
-            if(nrOfPages > 0)
+            var fileContent = new List<(int, int)>();
+            for (var j = 0; j < Dbms.nrOfPagesInPrimary; j++)
             {
-                // default distribution
-
-                List<(int, int)> fileContent = new List<(int, int)>();
-                for (int j = 0; j < DBMS.nrOfPagesInPrimary; j++)
-                {
-                    fileContent.Add((j * 10 + 1, j + 1));
-                }
-    
-                WriteToIndexFile(filePath, fileContent);
+                fileContent.Add((j * 10 + 1, j + 1));
             }
-
+    
+            WriteToIndexFile(filePath, fileContent);
         }
         public static void CreateFile(string filePath)
         {
@@ -126,12 +99,12 @@ namespace ISAM
                     using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None))
                     {
                         fs.Seek(position, SeekOrigin.Begin);
-                        using (BinaryWriter writer = new BinaryWriter(fs))
+                        using (var writer = new BinaryWriter(fs))
                         {
-                            foreach (var tup in fileContent)
+                            foreach (var (item1, item2) in fileContent)
                             {
-                                writer.Write(tup.Item1);
-                                writer.Write(tup.Item2);
+                                writer.Write(item1);
+                                writer.Write(item2);
                             }
                         }
                     }
@@ -154,7 +127,7 @@ namespace ISAM
                     using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None))
                     {
                         fs.Seek(position, SeekOrigin.Begin);
-                        using (BinaryWriter writer = new BinaryWriter(fs))
+                        using (var writer = new BinaryWriter(fs))
                         {
                             foreach (var record in records)
                             {
@@ -164,7 +137,7 @@ namespace ISAM
                                     writer.Write(item);
                                 }
                             }
-                            DBMS.nrOfOperations++;
+                            Dbms.nrOfOperations++;
                         }
                     }
                 }
@@ -181,24 +154,13 @@ namespace ISAM
         {
             if (filePath == "") filePath = testFile;
 
-            List<string> commands = new List<string>();
+            var commands = new List<string>();
 
             // whole content of test file is readed
-            if (File.Exists(filePath))
-            {
-                foreach (string record in System.IO.File.ReadLines(filePath))
-                {
-                    //if (RecordMenager.IsTestRecordFormatValid(record))
-                    commands.Add(record);
-                    //else throw new InvalidOperationException("Invalid record format!");
-                }
+            if (!File.Exists(filePath)) throw new InvalidOperationException("File does not!");
+            commands.AddRange(File.ReadLines(filePath));
 
-                return commands;
-            }
-            else
-            {
-                throw new InvalidOperationException("File does not!");
-            }
+            return commands;
         }
         public string GetIndexFileName() => indexFile;
         public string GetPrimaryFileName() => primaryFile;

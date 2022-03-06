@@ -1,33 +1,28 @@
-﻿using ISAM.source;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ISAM
+namespace ISAM.source
 {
-    class FileMenager
+    internal class FileMenager
     {
-        private const string ext = ".bin";
-        private static readonly string dirPath = Directory.GetCurrentDirectory().ToString() + @"\files";
-        private static readonly string indexFile = CreateFilePath("index");
-        private static readonly string primaryFile = CreateFilePath("primary");
-        private static readonly string overflowFile = CreateFilePath("overflow");
-        private static readonly string testFile = dirPath + @"\" + "test.txt";
+        private const string Ext = ".bin";
+        private static readonly string DirPath = Directory.GetCurrentDirectory() + @"\files";
+        private static readonly string IndexFile = CreateFilePath("index");
+        private static readonly string PrimaryFile = CreateFilePath("primary");
+        private static readonly string OverflowFile = CreateFilePath("overflow");
+        private static readonly string TestFile = DirPath + @"\" + "test.txt";
         private const string Attr = "_new";
-        private static readonly string indexNewFile = CreateFilePath("index", Attr);
-        private static readonly string primaryNewFile = CreateFilePath("primary", Attr);
-        private static readonly string overflowNewFile = CreateFilePath("overflow", Attr);
+        private static readonly string IndexNewFile = CreateFilePath("index", Attr);
+        private static readonly string PrimaryNewFile = CreateFilePath("primary", Attr);
+        private static readonly string OverflowNewFile = CreateFilePath("overflow", Attr);
 
         public FileMenager()
         {
             CreateDirectory();
-            GenerateIndexFile(indexFile, Dbms.DefaultNrOfPages);
-            GenerateAreaFile(primaryFile, Dbms.DefaultNrOfPages);
-            GenerateAreaFile(overflowFile, Dbms.DefaultNrOfPages);
+            GenerateIndexFile(IndexFile, Dbms.DefaultNrOfPages);
+            GenerateAreaFile(PrimaryFile, Dbms.DefaultNrOfPages);
+            GenerateAreaFile(OverflowFile, Dbms.DefaultNrOfPages);
         }
 
         public static void GenerateAreaFile(string filePath, int nrOfPages)
@@ -48,7 +43,7 @@ namespace ISAM
         {
             try
             {
-                Directory.CreateDirectory(dirPath);
+                Directory.CreateDirectory(DirPath);
             }
             catch (Exception e)
             {
@@ -84,9 +79,9 @@ namespace ISAM
         }
         internal void DeleteFiles()
         {
-            File.Delete(indexFile);
-            File.Delete(primaryFile);
-            File.Delete(overflowFile);
+            File.Delete(IndexFile);
+            File.Delete(PrimaryFile);
+            File.Delete(OverflowFile);
         }
 
         public static void WriteToIndexFile(string filePath, List<(int, int)> fileContent, int position = 0)
@@ -152,7 +147,7 @@ namespace ISAM
 
         public List<string> ReadTestFile(string filePath = "")
         {
-            if (filePath == "") filePath = testFile;
+            if (filePath == "") filePath = TestFile;
 
             var commands = new List<string>();
 
@@ -162,17 +157,17 @@ namespace ISAM
 
             return commands;
         }
-        public string GetIndexFileName() => indexFile;
-        public string GetPrimaryFileName() => primaryFile;
-        public string GetOverflowFileName() => overflowFile;
+        public string GetIndexFileName() => IndexFile;
+        public string GetPrimaryFileName() => PrimaryFile;
+        public string GetOverflowFileName() => OverflowFile;
 
-        public string GetIndexNewFileName() => indexNewFile;
-        public string GetPrimaryNewFileName() => primaryNewFile;
-        public string GetOverflowNewFileName() => overflowNewFile;
+        public string GetIndexNewFileName() => IndexNewFile;
+        public string GetPrimaryNewFileName() => PrimaryNewFile;
+        public string GetOverflowNewFileName() => OverflowNewFile;
 
-        public static string GetExt() => ext;
-        public static string GetDirPath() => dirPath;
-        public static string GetTestFileName() => testFile;
+        public static string GetExt() => Ext;
+        public static string GetDirPath() => DirPath;
+        public static string GetTestFileName() => TestFile;
 
         public static string CreateFilePath(string fileName, string attr = "")
         {
@@ -183,9 +178,9 @@ namespace ISAM
         {
             var fiArray = new FileInfo[3];
 
-            fiArray[0] = new FileInfo(indexFile);
-            fiArray[1] = new FileInfo(primaryFile);
-            fiArray[2] = new FileInfo(overflowFile);
+            fiArray[0] = new FileInfo(IndexFile);
+            fiArray[1] = new FileInfo(PrimaryFile);
+            fiArray[2] = new FileInfo(OverflowFile);
 
             long wholeFileSize = 0;
             try

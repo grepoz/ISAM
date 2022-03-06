@@ -1,10 +1,7 @@
-﻿using ISAM.source;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 
-
-namespace ISAM
+namespace ISAM.source
 {
     internal class Page
     {
@@ -65,12 +62,6 @@ namespace ISAM
             }
             return length;
         }
-
-        internal int FindIndex(int key)
-        {
-            return Array.FindIndex(_records, record => (record.GetKey() == key));
-        }
-
         public bool IsEmpty() => MyGetLength() == 0;
 
         public void SetPageNr(int pageNr)

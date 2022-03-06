@@ -1,9 +1,8 @@
-﻿using ISAM.source;
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using static System.Int32;
 
-namespace ISAM
+namespace ISAM.source
 {
     internal class RecordMenager
     {

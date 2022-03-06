@@ -1,11 +1,10 @@
-﻿using ISAM.source;
-using System;
+﻿using System;
 
 //
 // author: Grzegorz Pozorski
 //
 
-namespace ISAM
+namespace ISAM.source
 {
     internal class Program
     {

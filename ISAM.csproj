@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{DF71E665-7D59-4D72-87BD-722B89BEBEC9}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ISFO</RootNamespace>
-    <AssemblyName>ISFO</AssemblyName>
+    <RootNamespace>ISAM</RootNamespace>
+    <AssemblyName>ISAM</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
